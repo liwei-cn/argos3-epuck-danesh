@@ -7,6 +7,7 @@
 #include "real_epuck_range_and_bearing_actuator.h"
 #include <argos3/core/utility/logging/argos_log.h>
 
+#include <unistd.h>
 #include <cstring>
 
 namespace argos {
