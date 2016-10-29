@@ -27,6 +27,12 @@ else()
     ../plugins/robots/e-puck/real_robot/real_epuck_main.cpp)
   target_link_libraries(watcher argos3plugin_${ARGOS_BUILD_FOR}_epuck)
 
+  add_executable(test_controller
+          test_controller.h
+          test_controller.cpp
+          ../plugins/robots/e-puck/real_robot/real_epuck_main.cpp)
+  target_link_libraries(test_controller argos3plugin_${ARGOS_BUILD_FOR}_epuck)
+
   add_executable(calibration
     calibrate_epuck.h
     calibrate_epuck.cpp
