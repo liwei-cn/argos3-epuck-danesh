@@ -22,7 +22,7 @@
 
 namespace argos {
 
-const std::string DEVICE = "/dev/ttyS0";
+const std::string DEVICE = "/dev/ttyS2";
 const speed_t BAUD_RATE = B115200;
 
 /****************************************/
@@ -790,7 +790,7 @@ void CRealEPuck::RegisterSystemSignalHandlers() {
     /* user wishes to interrupt the process */
     signal(SIGINT, SignalHandler);
     /* immediate termination */
-    signal(SIGKILL,SignalHandler);
+//    signal(SIGKILL,SignalHandler);
     signal(SIGSEGV,SignalHandler);
     /* TODO handle segfault */
 }
@@ -804,7 +804,7 @@ void CRealEPuck::SignalHandler(SInt32 n_signal) {
     }
     static bool bSigHandlerRunning = false;
     if (bSigHandlerRunning) {
-        LOG << "Stop pressing CTRL-C. Something nasty happend. To close the controller:\n1-Type CTRL-\\.\n 2- Reset the PIC." << std::endl;
+        LOG << "Stop pressing CTRL-C. Something nasty happened. To close the controller:\n1-Type CTRL-\\.\n 2- Reset the PIC." << std::endl;
     }
     bSigHandlerRunning = true;
     LOG << "[INFO] Controller termination due to signal: " << n_signal << std::endl;

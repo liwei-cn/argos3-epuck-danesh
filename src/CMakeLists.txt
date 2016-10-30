@@ -2,7 +2,6 @@
 # Set minimum required version
 #
 cmake_minimum_required(VERSION 2.8)
-
 #
 # Set the path additional cmake files must be searched for
 #
@@ -40,6 +39,7 @@ include(${CMAKE_SOURCE_DIR}/cmake/ARGoSPackaging.cmake)
 include_directories(${CMAKE_SOURCE_DIR} ${ARGOS_INCLUDE_DIRS})
 link_directories(${ARGOS_LIBRARY_DIRS})
 
+set(CMAKE_CXX_FLAGS "-std=c++11")
 #
 # Compile stuff
 #
