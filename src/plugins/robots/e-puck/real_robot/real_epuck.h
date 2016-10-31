@@ -42,7 +42,7 @@ namespace argos {
 #include <iostream>
 #include <termios.h>
 #include <string>
-#include <signal.h>
+//#include <signal.h>
 #include <unistd.h>
 
 namespace argos {
@@ -303,12 +303,12 @@ namespace argos {
        * Rehandle system signals to ensure that the robot will stop
        * correctly.
        */
-      void RegisterSystemSignalHandlers();
+//      void RegisterSystemSignalHandlers();
 
       /**
        * Signal handler for terminating the controller gracefully.
        */
-      static void SignalHandler(SInt32 n_signal);
+//      static void SignalHandler(SInt32 n_signal);
 
       /**
        * Reset the pic 30

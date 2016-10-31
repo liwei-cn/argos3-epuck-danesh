@@ -17,7 +17,7 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <string.h>
-#include <signal.h>
+//#include <signal.h>
 #include <unistd.h>
 
 namespace argos {
@@ -64,13 +64,13 @@ CRealEPuck::CRealEPuck() :
 
 CRealEPuck::~CRealEPuck() {
 
-    /* termination requested by os (kill) */
-    signal(SIGTERM, SIG_IGN);
-    /* user wishes to interrupt the process */
-    signal(SIGINT, SIG_IGN);
-    /* immediate termination */
-    signal(SIGKILL,SIG_IGN);
-    signal(SIGSEGV,SIG_IGN);
+//    /* termination requested by os (kill) */
+//    signal(SIGTERM, SIG_IGN);
+//    /* user wishes to interrupt the process */
+//    signal(SIGINT, SIG_IGN);
+//    /* immediate termination */
+//    signal(SIGKILL,SIG_IGN);
+//    signal(SIGSEGV,SIG_IGN);
 
     ResetPic30();
     switch(m_eBoardState) {
@@ -116,7 +116,7 @@ CRealEPuck::~CRealEPuck() {
 
 void CRealEPuck::Init(const std::string& str_config_file_name,
                       const std::string& str_controller_id) {
-    RegisterSystemSignalHandlers();
+//    RegisterSystemSignalHandlers();
     InitSerial();
     CRealEPuckI2CDevice::Init();
     WakeUpPic();
@@ -784,32 +784,32 @@ void CRealEPuck::LoadSensors(TConfigurationNode& c_controller_tree) {
 /****************************************/
 /****************************************/
 
-void CRealEPuck::RegisterSystemSignalHandlers() {
-    /* termination requested by os (kill) */
-    signal(SIGTERM, SignalHandler);
-    /* user wishes to interrupt the process */
-    signal(SIGINT, SignalHandler);
-    /* immediate termination */
-//    signal(SIGKILL,SignalHandler);
-    signal(SIGSEGV,SignalHandler);
-    /* TODO handle segfault */
-}
+//void CRealEPuck::RegisterSystemSignalHandlers() {
+//    /* termination requested by os (kill) */
+//    signal(SIGTERM, SignalHandler);
+//    /* user wishes to interrupt the process */
+//    signal(SIGINT, SignalHandler);
+//    /* immediate termination */
+////    signal(SIGKILL,SignalHandler);
+//    signal(SIGSEGV,SignalHandler);
+//    /* TODO handle segfault */
+//}
 
 /****************************************/
 /****************************************/
 
-void CRealEPuck::SignalHandler(SInt32 n_signal) {
-    if(!GetInstance().bGoHome()){
-        GetInstance().setBGoHome(true);
-    }
-    static bool bSigHandlerRunning = false;
-    if (bSigHandlerRunning) {
-        LOG << "Stop pressing CTRL-C. Something nasty happened. To close the controller:\n1-Type CTRL-\\.\n 2- Reset the PIC." << std::endl;
-    }
-    bSigHandlerRunning = true;
-    LOG << "[INFO] Controller termination due to signal: " << n_signal << std::endl;
-
-}
+//void CRealEPuck::SignalHandler(SInt32 n_signal) {
+//    if(!GetInstance().bGoHome()){
+//        GetInstance().setBGoHome(true);
+//    }
+//    static bool bSigHandlerRunning = false;
+//    if (bSigHandlerRunning) {
+//        LOG << "Stop pressing CTRL-C. Something nasty happened. To close the controller:\n1-Type CTRL-\\.\n 2- Reset the PIC." << std::endl;
+//    }
+//    bSigHandlerRunning = true;
+//    LOG << "[INFO] Controller termination due to signal: " << n_signal << std::endl;
+//
+//}
 
 /****************************************/
 /****************************************/
