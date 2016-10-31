@@ -33,6 +33,9 @@ namespace argos {
 
       virtual void SwitchLEDs(bool b_switched_on);
 
+      virtual void FrontLED(bool on);
+      virtual void BodyLED(bool on);
+
    };
 }
 #endif

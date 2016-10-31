@@ -54,6 +54,9 @@ namespace argos {
        */
       virtual void SwitchLEDs(bool b_on);
 
+      virtual void FrontLED(bool on);
+      virtual void BodyLED(bool on);
+
 #ifdef ARGOS_WITH_LUA
       virtual void CreateLuaState(lua_State* pt_lua_state);
 #endif

@@ -44,4 +44,19 @@ namespace argos {
    /****************************************/
    /****************************************/
 
+   void CRealEPuckBaseLEDsActuator::FrontLED(bool on)
+   {
+      if(on)
+         m_psState->OtherLEDs |= 1;
+      else
+         m_psState->OtherLEDs &= ~1;
+   }
+
+    void CRealEPuckBaseLEDsActuator::BodyLED(bool on)
+    {
+       if(on)
+          m_psState->OtherLEDs |= 2;
+       else
+          m_psState->OtherLEDs &= ~2;
+    }
 }

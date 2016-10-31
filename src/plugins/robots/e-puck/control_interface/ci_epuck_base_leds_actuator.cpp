@@ -89,6 +89,16 @@ namespace argos {
    /****************************************/
    /****************************************/
 
+   void CCI_EPuckBaseLEDsActuator::FrontLED(bool on)
+   {
+
+   }
+
+   void CCI_EPuckBaseLEDsActuator::BodyLED(bool on)
+   {
+
+   }
+
 #ifdef ARGOS_WITH_LUA
    void CCI_EPuckBaseLEDsActuator::CreateLuaState(lua_State* pt_lua_state) {
       CLuaUtility::OpenRobotStateTable(pt_lua_state, "base_leds");

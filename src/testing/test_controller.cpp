@@ -47,6 +47,9 @@ void CTestController::ControlStep()
     base_leds_actuator->SwitchLED(control_step % 8, true); // Turn one of the 8 base LEDs on
     base_leds_actuator->SwitchLED((control_step - 1) % 8, false); // Turn previous base LED off
 
+    base_leds_actuator->FrontLED(control_step % 2 == 0);
+    base_leds_actuator->BodyLED(control_step % 2 == 1);
+
     printf("[PROXIMITY]\t");
 
     const CCI_EPuckProximitySensor::TReadings& proximity_sensor_readings = proximity_sensor->GetReadings();
