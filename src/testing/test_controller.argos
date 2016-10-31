@@ -9,13 +9,16 @@
     <controllers>
         <test_controller id="test_controller"
                          library="build_linux/testing/libtest_controller.so">
-            <actuators>
-                <epuck_wheels implementation="default"/>
-            </actuators>
 
             <sensors>
                 <epuck_proximity implementation="default" show_rays="false"/>
+                <epuck_light implementation="default" show_rays="false"/>
             </sensors>
+
+            <actuators>
+                <epuck_wheels implementation="default"/>
+                <epuck_base_leds implementation="default" medium="leds"/>
+            </actuators>
 
             <params/>
         </test_controller>
@@ -32,7 +35,9 @@
         <dynamics2d id="dyn2d" />
     </physics_engines>
 
-    <media/>
+    <media>
+        <led id="leds"/>
+    </media>
 
     <visualization>
         <qt-opengl/>
