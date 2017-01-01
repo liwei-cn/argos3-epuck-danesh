@@ -13,6 +13,7 @@
             <sensors>
                 <epuck_proximity implementation="default" show_rays="false"/>
                 <epuck_light implementation="default" show_rays="false"/>
+                <epuck_pseudo_range_and_bearing implementation="default" show_rays="false"/>
             </sensors>
 
             <actuators>

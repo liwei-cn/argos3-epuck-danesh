@@ -21,6 +21,7 @@ set(ARGOS3_HEADERS_PLUGINS_ROBOTS_EPUCK_REALROBOT
   real_robot/real_epuck_micro_sensor.h
   real_robot/real_epuck_omnidirectional_camera_sensor.h
   real_robot/real_epuck_virtual_camrab_sensor.h
+  real_robot/real_epuck_pseudo_range_and_bearing_sensor.h
   # Actuators
   real_robot/real_epuck_serial_actuator.h
   real_robot/real_epuck_wheels_actuator.h
@@ -69,6 +70,7 @@ set(ARGOS3_SOURCES_PLUGINS_ROBOTS_EPUCK
   real_robot/real_epuck_micro_sensor.cpp
   real_robot/real_epuck_omnidirectional_camera_sensor.cpp
   real_robot/real_epuck_virtual_camrab_sensor.cpp
+  real_robot/real_epuck_pseudo_range_and_bearing_sensor.cpp
   # Actuators
   real_robot/real_epuck_wheels_actuator.cpp
   real_robot/real_epuck_base_leds_actuator.cpp

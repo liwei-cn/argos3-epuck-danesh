@@ -217,6 +217,10 @@ void CRealEPuck::UpdateValues() {
     if(m_pcOmnidirectionalCameraSensor!=NULL){
         m_pcOmnidirectionalCameraSensor->Update();
     }
+    /*Update pseudo range-and-bearing sensor*/
+    if(m_pcPseudoRangeAndBearingSensor!=NULL){
+        m_pcPseudoRangeAndBearingSensor->UpdateValues();
+    }
     for(size_t i = 0; i < m_vecSerialSensors.size(); ++i) {
         m_vecSerialSensors[i]->UpdateValues();
     }
@@ -303,6 +307,9 @@ CCI_Sensor* CRealEPuck::InsertSensor(const std::string& str_sensor_name) {
     } else if (str_sensor_name == "epuck_omnidirectional_camera") {
         m_pcOmnidirectionalCameraSensor = CreateSensor<CRealEPuckOmnidirectionalCameraSensor>(str_sensor_name);
         return m_pcOmnidirectionalCameraSensor;    
+    } else if (str_sensor_name == "epuck_pseudo_range_and_bearing") {
+        m_pcPseudoRangeAndBearingSensor = CreateSensor<CRealEPuckPseudoRangeAndBearingSensor>(str_sensor_name);
+        return m_pcPseudoRangeAndBearingSensor;
     } else if (str_sensor_name == "epuck_virtual_camrab") {
         CRealEPuckVirtualCamrabSensor* pcVirtualCamrabSensor = CreateSensor<CRealEPuckVirtualCamrabSensor>(str_sensor_name);
         m_vecI2CSensors.push_back(pcVirtualCamrabSensor);

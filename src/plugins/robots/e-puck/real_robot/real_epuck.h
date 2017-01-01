@@ -22,6 +22,7 @@ namespace argos {
 #include <argos3/plugins/robots/e-puck/real_robot/real_epuck_ground_sensor.h>
 #include <argos3/plugins/robots/e-puck/real_robot/real_epuck_accelerometer_sensor.h>
 #include <argos3/plugins/robots/e-puck/real_robot/real_epuck_range_and_bearing_sensor.h>
+#include <argos3/plugins/robots/e-puck/real_robot/real_epuck_pseudo_range_and_bearing_sensor.h> //@danesh
 #include <argos3/plugins/robots/e-puck/real_robot/real_epuck_ircom_sensor.h>
 #include <argos3/plugins/robots/e-puck/real_robot/real_epuck_micro_sensor.h>
 #include <argos3/plugins/robots/e-puck/real_robot/real_epuck_wheels_actuator.h>
@@ -446,6 +447,11 @@ namespace argos {
       std::vector<CRealEPuckI2CSensor*> m_vecI2CSensors;
 
       /**
+       * Pseudo range and bearing sensor (using an external camera tracking system)
+       */
+      CRealEPuckPseudoRangeAndBearingSensor* m_pcPseudoRangeAndBearingSensor;
+
+      /**
        * Omnidirectional camera sensor
        */
       CRealEPuckOmnidirectionalCameraSensor* m_pcOmnidirectionalCameraSensor;
@@ -470,6 +476,11 @@ namespace argos {
        * Struct that contains the sensor state.
        */
       BaseSensorState m_sSensorState;
+
+//      /**
+//       * Vector of struct that contains the pseudo range and bearing data
+//       */
+//      std::vector<BasePseudoRangeAndBearingMessage> m_vecPseudoRangeAndBearingState;
 
       /**
        * The random number generator

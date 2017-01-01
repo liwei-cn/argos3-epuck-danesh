@@ -41,6 +41,15 @@ typedef struct {
     Real Bearing; // 4 bytes
 } BaseRangeAndBearingMessage;
 
+///**
+//    * Structure to store a pseudo RAB reading
+//    */
+//typedef struct {
+//    UInt8  RobotId;  // 1 bytes
+//    Real Range;      // 4 bytes
+//    Real Bearing;    // 4 bytes
+//} BasePseudoRangeAndBearingMessage;
+
 /**
     * Structure to store a IR message
     */
