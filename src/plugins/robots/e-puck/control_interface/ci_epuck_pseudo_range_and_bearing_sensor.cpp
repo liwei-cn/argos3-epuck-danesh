@@ -28,7 +28,15 @@ namespace argos
    {
       /* get the range value (in cm) from the configuration file*/
       Real range;
+      try
+      {
       GetNodeAttributeOrDefault(t_node, "range", range, 100.0f);
+      }
+      catch (CARGoSException& ex)
+      {
+          THROW_ARGOSEXCEPTION_NESTED("Unable to init range attribute "
+                                      << "is missing, mandatory", ex);
+      }
    }
 
    /****************************************/

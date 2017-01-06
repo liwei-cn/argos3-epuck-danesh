@@ -41,11 +41,11 @@ void CTestController::Init(TConfigurationNode& t_node)
     wheels_actuator = GetActuator<CCI_EPuckWheelsActuator>("epuck_wheels");
     base_leds_actuator = GetActuator<CCI_EPuckBaseLEDsActuator>("epuck_base_leds");
 
-    un_databuffersize = 1024; //max size of data packet received from tracking server.
+    /*un_databuffersize = 1024; //max size of data packet received from tracking server.
     pun_databuffer = new UInt8[un_databuffersize];
     un_connectionstatus = ConnectTrackingServer(UDP);
 
-    un_serveraddresslength = sizeof(struct sockaddr_in);
+    un_serveraddresslength = sizeof(struct sockaddr_in);*/
  }
 
 int CTestController::ConnectTrackingServer(int protocol)
@@ -85,7 +85,7 @@ int CTestController::ConnectTrackingServer(int protocol)
         bzero((char *) &client, sizeof(client));
         client.sin_family = AF_INET;
         client.sin_addr.s_addr = INADDR_ANY;
-        client.sin_port = htons(8889);
+        client.sin_port = htons(9000);
 
         //Bind. For UDP communicatio the client also has to bind to its port to receive packets from the server
         if(bind(socket_desc,(struct sockaddr *)&client , sizeof(client)) < 0)
@@ -138,7 +138,7 @@ void CTestController::ControlStep()
     std::cout << ptr_local_time->tm_hour << " " << ptr_local_time->tm_min << " " << ptr_local_time->tm_sec << std::endl;*/
 
 
-    if(un_connectionstatus==0)
+    /*if(un_connectionstatus==0)
     {
         bzero((UInt8*) pun_databuffer, un_databuffersize);
         //ReceiveBuffer(pun_databuffer, un_databuffersize); // not using this function as the packet size is not fixed
@@ -166,7 +166,7 @@ void CTestController::ControlStep()
             }
             std::cout << std::endl;
         }
-    }
+    }*/
 
 
 //    wheels_actuator->SetLinearVelocity(left_wheel_speed, right_wheel_speed);

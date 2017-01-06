@@ -39,6 +39,38 @@ namespace argos
       virtual void Init(TConfigurationNode& t_node);
       virtual void UpdateValues();
 
+      /**
+       * This struct defines a received deserialized range and bearing packet.  It
+       * holds the id of the robot, the distance to it in cms (multiplied by 10) and
+       * the bearing to it in degrees (multiplied by 10)
+       */
+      struct RecvDesrzPkt
+      {
+         /**
+          * Id of the robot.
+          */
+         UInt8 RobotId;
+
+         /**
+          * Distance in cm.
+          */
+         UInt16 Range;
+
+         /**
+          * Angle with respect to the robot heading.
+          */
+         UInt16 Bearing;
+
+         /**
+          * Empty constructor
+          */
+         RecvDesrzPkt() :
+            RobotId(255),
+            Range(0),
+            Bearing(0)
+         {}
+      };
+
    private:
 
       void Recvfrom_Handler();
@@ -69,6 +101,11 @@ namespace argos
        * Received data packet details
        */
       UInt8* pun_receivedpacket; unsigned un_maxreceivedpacketsize; int in_receivedpacketsize;
+
+      /**
+       * Data packet structure for deserialization
+       */
+      RecvDesrzPkt ms_RecvDesrzPkt;
 
       /**
        * Buffer storing the data packet
