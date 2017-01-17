@@ -13,7 +13,6 @@
   <!-- ************************* -->
  <!-- length in seconds -->
   <framework>
-        <system threads="0" />
         <experiment length="3000"
                     ticks_per_second="10"
                     random_seed="777" />
@@ -46,23 +45,23 @@
   </controllers>
 
 
-    <arena size="5,5,1" center="0,0,0.5">
+  <arena size="5,5,1" center="0,0,0.5">
         <e-puck id="ep0">
                  <body position="0,0,0" orientation="0,0,0"/>
                  <controller config="test_controller" />
         </e-puck>
-    </arena>
+  </arena>
 
-    <physics_engines>
+  <physics_engines>
         <dynamics2d id="dyn2d" />
-    </physics_engines>
+  </physics_engines>
 
-    <media>
+  <media>
         <led id="leds"/>
-    </media>
+  </media>
 
-    <visualization>
+  <visualization>
         <qt-opengl/>
-    </visualization>
+  </visualization>
 
 </argos-configuration>
