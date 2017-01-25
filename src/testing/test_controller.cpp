@@ -171,6 +171,8 @@ void CTestController::ControlStep()
 
 //    wheels_actuator->SetLinearVelocity(left_wheel_speed, right_wheel_speed);
 
+    std::cout << "[Robot Id] " << this->GetId() << " => " << RobotIdStrToInt() << std::endl;
+
     base_leds_actuator->SwitchLED(control_step % 8, true); // Turn one of the 8 base LEDs on
     base_leds_actuator->SwitchLED((control_step - 1) % 8, false); // Turn previous base LED off
 
@@ -206,27 +208,31 @@ void CTestController::ControlStep()
 
     printf("\n\n");
 
-//    double velocity = CCI_EPuckWheelsActuator::MAX_VELOCITY_CM_SEC / 4;
-//
-//    CVector2 vector;
-//
-//    for(int i = 0; i < proximity_sensor_readings.size(); ++i)
-//        vector += CVector2(proximity_sensor_readings[i].Value, proximity_sensor_readings[i].Angle);
-//
-//    vector /= proximity_sensor_readings.size();
-//
-//    printf("velocity: %f\n", velocity);
-//    printf("length: %f, angle: %f\n", vector.Length(), ToDegrees(vector.Angle()));
-//
-//    if(vector.Length() > 50)
-//    {
-//        if(ToDegrees(vector.Angle()).GetValue() > 0.0f)
-//            wheels_actuator->SetLinearVelocity(velocity, 0.0f);
-//        else
-//            wheels_actuator->SetLinearVelocity(0.0f, velocity);
-//    }
-//    else
-//        wheels_actuator->SetLinearVelocity(velocity, velocity);
+
+
+    double velocity = CCI_EPuckWheelsActuator::MAX_VELOCITY_CM_SEC / 4;
+
+    CVector2 vector;
+
+    for(int i = 0; i < proximity_sensor_readings.size(); ++i)
+        vector += CVector2(proximity_sensor_readings[i].Value, proximity_sensor_readings[i].Angle);
+
+    vector /= proximity_sensor_readings.size();
+
+    printf("velocity: %f\n", velocity);
+    printf("length: %f, angle: %f\n", vector.Length(), ToDegrees(vector.Angle()).GetValue());
+
+    if(vector.Length() > 50)
+    {
+        if(ToDegrees(vector.Angle()).GetValue() > 0.0f)
+            wheels_actuator->SetLinearVelocity(velocity, 0.0f);
+        else
+            wheels_actuator->SetLinearVelocity(0.0f, velocity);
+    }
+    else
+        wheels_actuator->SetLinearVelocity(velocity, velocity);
+
+
 }
 
 REGISTER_CONTROLLER(CTestController, "test_controller");

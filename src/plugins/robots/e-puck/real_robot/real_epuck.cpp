@@ -850,7 +850,7 @@ UInt64 CRealEPuck::GetTime() {
 
 void CRealEPuck::SetId(CCI_Controller& c_controller) {
     // set the robot id to the hostname of this robot
-    char pchBuffer[30];
+    /*char pchBuffer[30];
     if (::gethostname(pchBuffer, 30) == 0) {
         LOG << "[INFO] Setting robot id to its hostname '"
             << pchBuffer << "'."
@@ -861,11 +861,7 @@ void CRealEPuck::SetId(CCI_Controller& c_controller) {
                << "Setting default robot id 'e-puck'."
                << std::endl;
         c_controller.SetId("e-puck");
-    }
-
-
-
-
+    }*/
 
 
     struct ifaddrs *ifaddr, *ifa;
@@ -875,7 +871,7 @@ void CRealEPuck::SetId(CCI_Controller& c_controller) {
     if (getifaddrs(&ifaddr) == -1)
         THROW_ARGOSEXCEPTION("Error getifaddrs");
 
-
+    bool id_found = false;
     for (ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next)
     {
         if (ifa->ifa_addr == NULL)
@@ -883,25 +879,20 @@ void CRealEPuck::SetId(CCI_Controller& c_controller) {
 
         s=getnameinfo(ifa->ifa_addr, sizeof(struct sockaddr_in), ipaddress, NI_MAXHOST, NULL, 0, NI_NUMERICHOST);
 
-        if((strcmp(ifa->ifa_name, "wlan0") == 0) && (ifa->ifa_addr->sa_family==AF_INET))
+        if((s==0) && (strcmp(ifa->ifa_name, "wlan0") == 0) && (ifa->ifa_addr->sa_family==AF_INET))
         {
-            if (s != 0)
-            {
-                std::cerr << "getnameinfo() failed: " << gai_strerror(s);
-                LOGERR << "[WARNING] Failed to get hostname."
-                       << "Setting default robot id 'e-puck'."
-                       << std::endl;
-                c_controller.SetId("e-puck");
-            }
-            else
-            {
-                c_controller.SetId(std::string(pchBuffer).erase(0, 12));
-            }
-
-            //printf("\tInterface : <%s>\n",ifa->ifa_name );
-            //printf("\t  Address : <%s>\n", ipaddress);
+            c_controller.SetId(std::string(ipaddress).erase(0, 10));
+            id_found = true;
             break;
         }
+    }
+
+    if(!id_found)
+    {
+            LOGERR << "[WARNING] Failed to get ip address for wlan0."
+                   << "Setting default robot id 'e-puck'."
+                   << std::endl;
+            c_controller.SetId("e-puck");
     }
 
     freeifaddrs(ifaddr);

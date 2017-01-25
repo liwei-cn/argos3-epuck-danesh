@@ -34,6 +34,16 @@ namespace argos
         virtual int ConnectTrackingServer(int protocol);
         virtual bool ReceiveBuffer(UInt8* pun_buffer, size_t un_size);
 
+        virtual unsigned RobotIdStrToInt()
+        {
+            std::string id = GetId();
+
+            std::string::size_type sz;   // alias of size_t
+            unsigned u_id = std::stoi(id, &sz);
+            return u_id;
+        }
+
+
     private:
 
         SInt32 left_wheel_speed;

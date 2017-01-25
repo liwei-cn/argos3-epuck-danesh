@@ -44,6 +44,14 @@
 
 /****************************************/
 /****************************************/
+/* Definition of functions to estimate feature-vectors - proprioceptively, or by observation */
+
+//#include "propriofeaturevector.h"
+//#include "observedfeaturevector.h"
+//#include "bayesianinferencefeaturevector.h"
+
+/****************************************/
+/****************************************/
 
 using namespace argos;
 
@@ -309,6 +317,10 @@ private:
 
     TBehaviorVector             m_vecBehaviors;
     bool                        b_damagedrobot;     // true if robot is damaged
+
+//    CProprioceptiveFeatureVector       m_cProprioceptiveFeatureVector;
+//    CObservedFeatureVector             m_cObservationFeatureVector;
+//    CBayesianInferenceFeatureVector    m_cBayesianInferredFeatureVector;
 
     CFlockingBehavior*          m_pFlockingBehavior;
 

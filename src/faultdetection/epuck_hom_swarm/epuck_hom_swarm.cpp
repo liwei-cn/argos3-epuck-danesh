@@ -25,6 +25,12 @@
 CBehavior::SensoryData CBehavior::m_sSensoryData;
 CBehavior::RobotData CBehavior::m_sRobotData;
 
+//CProprioceptiveFeatureVector::RobotData CProprioceptiveFeatureVector::m_sRobotData;
+
+//CObservedFeatureVector::RobotData CObservedFeatureVector::m_sRobotData;
+
+//CBayesianInferenceFeatureVector::RobotData CBayesianInferenceFeatureVector::m_sRobotData;
+
 /****************************************/
 /****************************************/
 
@@ -181,6 +187,17 @@ void CEPuckHomSwarm::CopyRobotDetails(RobotDetails& robdetails)
 
     CBehavior::m_sRobotData.m_cNoTurnOnAngleThreshold   = robdetails.m_cNoTurnOnAngleThreshold;
     CBehavior::m_sRobotData.m_cSoftTurnOnAngleThreshold = robdetails.m_cSoftTurnOnAngleThreshold;
+
+
+//    CProprioceptiveFeatureVector::m_sRobotData.MaxLinearSpeed           = robdetails.MaxLinearSpeed; //cm/controlcycle
+//    CProprioceptiveFeatureVector::m_sRobotData.MaxLinearAcceleration    = robdetails.MaxLinearAcceleration; //cm/controlcycle/controlcycle
+//    CProprioceptiveFeatureVector::m_sRobotData.HALF_INTERWHEEL_DISTANCE = robdetails.HALF_INTERWHEEL_DISTANCE; // m
+//    CProprioceptiveFeatureVector::m_sRobotData.INTERWHEEL_DISTANCE      = robdetails.INTERWHEEL_DISTANCE; // m
+//    CProprioceptiveFeatureVector::m_sRobotData.MaxAngularSpeed          = robdetails.MaxAngularSpeed; // rad/controlcycle
+//    CProprioceptiveFeatureVector::m_sRobotData.MaxAngularAcceleration   = robdetails.MaxAngularAcceleration; // rad/controlcycle/controlcycle
+//    CProprioceptiveFeatureVector::m_sRobotData.iterations_per_second    = robdetails.iterations_per_second;
+//    CProprioceptiveFeatureVector::m_sRobotData.seconds_per_iterations   = robdetails.seconds_per_iterations;
+//    CProprioceptiveFeatureVector::m_sRobotData.WHEEL_RADIUS             = robdetails.WHEEL_RADIUS;
 }
 
 /****************************************/

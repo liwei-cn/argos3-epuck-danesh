@@ -56,13 +56,23 @@ namespace argos
           CRadians Bearing;
 
           /**
+           * Four byte data packet
+           */
+          UInt8 Data[4];
+
+          /**
            * Empty constructor
            */
           SReceivedPacket() :
              RobotId(255),
              Range(0.0f),
              Bearing(0.0)
-          {}
+          {
+              Data[0] = 0;
+              Data[1] = 0;
+              Data[2] = 0;
+              Data[3] = 0;
+          }
 
 
           /**
@@ -75,6 +85,10 @@ namespace argos
                 RobotId = t_packet.RobotId;
                 Range   = t_packet.Range;
                 Bearing = t_packet.Bearing;
+                Data[0] = t_packet.Data[0];
+                Data[1] = t_packet.Data[1];
+                Data[2] = t_packet.Data[2];
+                Data[3] = t_packet.Data[3];
              }
              return *this;
           }

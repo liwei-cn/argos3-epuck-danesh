@@ -62,13 +62,23 @@ namespace argos
          UInt16 Bearing;
 
          /**
+          * Four byte data packet.
+          */
+         UInt8 Data[4];
+
+         /**
           * Empty constructor
           */
          RecvDesrzPkt() :
             RobotId(255),
             Range(0),
             Bearing(0)
-         {}
+         {
+             Data[0] = 0;
+             Data[1] = 0;
+             Data[2] = 0;
+             Data[3] = 0;
+         }
       };
 
    private:
