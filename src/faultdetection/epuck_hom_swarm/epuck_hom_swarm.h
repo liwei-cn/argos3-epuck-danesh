@@ -8,9 +8,14 @@
 #ifndef EPUCK_HOMSWARM_H
 #define EPUCK_HOMSWARM_H
 
+//#define DEBUG_EXP_MESSAGES
+
 /****************************************/
 /****************************************/
 /* ARGoS headers */
+
+/* Deubg message flags*/
+#include <argos3/plugins/robots/e-puck/real_robot/real_epuck_debugmessages.h>
 
 /* Definition of the CCI_Controller class. */
 #include <argos3/core/control_interface/ci_controller.h>
@@ -46,9 +51,18 @@
 /****************************************/
 /* Definition of functions to estimate feature-vectors - proprioceptively, or by observation */
 
-//#include "propriofeaturevector.h"
+#include "propriofeaturevector.h"
 //#include "observedfeaturevector.h"
-//#include "bayesianinferencefeaturevector.h"
+#include "bayesianinferencefeaturevector.h"
+
+/****************************************/
+/****************************************/
+
+/* Definition of functions to assimilate the different feature-vectors and perform abnormality detection */
+
+#include "sensingandcommunication.h"
+#include "featurevectorsinrobotagent.h"
+//#include "crminrobotagent_optimised.h"
 
 /****************************************/
 /****************************************/
@@ -68,6 +82,7 @@ public:
             SWARM_AGGREGATION = 0,
             SWARM_DISPERSION,
             SWARM_HOMING,
+            SWARM_HOMING_MOVING_BEACON,
             SWARM_FLOCKING,
             SWARM_STOP,
             SWARM_NONE
@@ -193,7 +208,12 @@ public:
     virtual void Reset();
     virtual void Destroy() {}
 
+    t_listFVsSensed&             GetListFVsSensed()         {return listFVsSensed;}
+    t_listMapFVsToRobotIds&      GetMapFVsSensed()          {return listMapFVsToRobotIds;}
+
     Real m_fInternalRobotTimer; Real m_fRobotTimerAtStart;
+
+    std::vector <int> beaconrobots_ids;
 
 private:
 
@@ -209,7 +229,7 @@ private:
 
         if(fault_type == ExperimentToRun::FaultBehavior::FAULT_PROXIMITYSENSORS_SETMIN)
         {
-             /* Front four IR sensors */
+            /* Front four IR sensors */
             sensor_readings[0].Value = 0.0f; sensor_readings[1].Value = 0.0f; sensor_readings[7].Value = 0.0f; sensor_readings[6].Value = 0.0f;
 
             //sensor_readings[2].Value = 0.0f; sensor_readings[3].Value = 0.0f;
@@ -219,7 +239,7 @@ private:
         }
         else if(fault_type == ExperimentToRun::FaultBehavior::FAULT_PROXIMITYSENSORS_SETMAX)
         {
-             /* Front four IR sensors */
+            /* Front four IR sensors */
             sensor_readings[0].Value = 1.0f; sensor_readings[1].Value = 1.0f; sensor_readings[7].Value = 1.0f; sensor_readings[6].Value = 1.0f;
 
             //sensor_readings[2].Value = 1.0f; sensor_readings[3].Value = 1.0f;
@@ -227,7 +247,7 @@ private:
         }
         else if(fault_type == ExperimentToRun::FaultBehavior::FAULT_PROXIMITYSENSORS_SETRANDOM)
         {
-             /* Front four IR sensors */
+            /* Front four IR sensors */
             sensor_readings[0].Value = m_pcRNG->Uniform(CRange<Real>(0.0f, 1.0f));
             sensor_readings[1].Value = m_pcRNG->Uniform(CRange<Real>(0.0f, 1.0f));
             sensor_readings[7].Value = m_pcRNG->Uniform(CRange<Real>(0.0f, 1.0f));
@@ -237,7 +257,7 @@ private:
         }
         else if(fault_type == ExperimentToRun::FaultBehavior::FAULT_PROXIMITYSENSORS_SETOFFSET)
         {
-             /* Front four IR sensors */
+            /* Front four IR sensors */
             sensor_readings[0].Value += m_pcRNG->Uniform(CRange<Real>(-0.5f, 0.5f));
             sensor_readings[1].Value += m_pcRNG->Uniform(CRange<Real>(-0.5f, 0.5f));
             sensor_readings[7].Value += m_pcRNG->Uniform(CRange<Real>(-0.5f, 0.5f));
@@ -318,19 +338,26 @@ private:
     TBehaviorVector             m_vecBehaviors;
     bool                        b_damagedrobot;     // true if robot is damaged
 
-//    CProprioceptiveFeatureVector       m_cProprioceptiveFeatureVector;
-//    CObservedFeatureVector             m_cObservationFeatureVector;
-//    CBayesianInferenceFeatureVector    m_cBayesianInferredFeatureVector;
+    CProprioceptiveFeatureVector       m_cProprioceptiveFeatureVector;
+    //    CObservedFeatureVector             m_cObservationFeatureVector;
+    CBayesianInferenceFeatureVector    m_cBayesianInferredFeatureVector;
+
+    t_listFVsSensed               listFVsSensed;
+    t_listMapFVsToRobotIds        listMapFVsToRobotIds; // ids and fvs of observed neighbours, including ids and fvs the neighbours have relayed to you
+    t_listMapFVsToRobotIds        listMapFVsToRobotIds_relay; // ids and fvs of observed neighbours - for you to relay to your neighbours.
 
     CFlockingBehavior*          m_pFlockingBehavior;
 
+    unsigned                    u_num_consequtivecollisions;
+
     /* The random number generator */
     CRandom::CRNG* m_pcRNG;
+    CRandom::CRNG* m_pcRNG_FVs; // we have a separate RNG for forgetting FVs. This way the actual behaviors based on random walk are independent from the running of the CRM.
 
     /*Information on the experiment to run - the swarm behavior and the faulty behavior*/
     ExperimentToRun m_sExpRun;
 
-    unsigned m_uRobotId;
+    unsigned m_uRobotId, m_uRobotFV; // Robot Id and proprioceptively computed FV
 
     Real leftSpeed, rightSpeed, leftSpeed_prev, rightSpeed_prev;
 };

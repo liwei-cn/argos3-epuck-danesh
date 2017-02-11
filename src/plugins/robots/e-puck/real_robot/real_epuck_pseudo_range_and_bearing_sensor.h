@@ -7,6 +7,8 @@
 #ifndef REAL_EPUCK_PSEUDO_RANGE_AND_BEARING_SENSOR_H
 #define REAL_EPUCK_PSEUDO_RANGE_AND_BEARING_SENSOR_H
 
+//#define DEBUG_RAB_MESSAGES
+
 namespace argos
 {
    class CRealEPuckPseudoRangeAndBearingSensor;
@@ -14,9 +16,12 @@ namespace argos
 
 #include <argos3/plugins/robots/e-puck/control_interface/ci_epuck_pseudo_range_and_bearing_sensor.h>
 //#include <argos3/plugins/robots/e-puck/real_robot/real_epuck_serial_sensor.h>
+#include <argos3/plugins/robots/e-puck/real_robot/real_epuck_debugmessages.h>
 #include <argos3/plugins/robots/e-puck/real_robot/real_epuck_base.h>
 #include <argos3/core/utility/math/angles.h>
 #include <argos3/core/utility/math/range.h>
+#include <argos3/core/utility/math/rng.h>
+#include <argos3/core/utility/math/vector2.h>
 
 #include<unistd.h>
 #include<sys/socket.h>
@@ -131,6 +136,18 @@ namespace argos
        * This mutex protects the concurrent access to the data buffer of received packets (pun_databuffer)
        */
       pthread_mutex_t m_tBufferQueueMutex;
+
+      /**
+       * Max. allowable range of sensor
+       */
+      Real max_range;
+
+      /**
+       * Noise on the range of the sensor
+       */
+      Real noise_std_dev;
+
+      CRandom::CRNG* m_pcRNG;
    };
 }
 

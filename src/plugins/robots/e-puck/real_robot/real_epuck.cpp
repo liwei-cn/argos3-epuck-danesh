@@ -128,7 +128,13 @@ void CRealEPuck::Init(const std::string& str_config_file_name,
     CRealEPuckI2CDevice::Init();
     WakeUpPic();
     SendSensorConfiguration();
+#ifdef DEBUG_EPUCK_MESSAGES
+    std::cout << "InitController started in CRealEPuck" << std::endl;
+#endif
     InitController(str_config_file_name, str_controller_id);
+#ifdef DEBUG_EPUCK_MESSAGES
+    std::cout << "InitController ended in CRealEPuck" << std::endl;
+#endif
 }
 
 /****************************************/
@@ -204,12 +210,22 @@ void CRealEPuck::ReceiveSensorData() {
     case SENDING_CONFIGURATION:
     case SEND:
     {
+#ifdef DEBUG_EPUCK_MESSAGES
+        std::cout << "Receive sensor data from the I2C bus " << std::endl;
+#endif
         /* Receive data from the I2C bus */
         for(size_t i = 0; i < m_vecI2CSensors.size(); ++i) {
             m_vecI2CSensors[i]->ReceiveData();
         }
+#ifdef DEBUG_EPUCK_MESSAGES
+        std::cout << "Received sensor data from the I2C bus " << std::endl;
         /* Receive data from the serial bus */
+        std::cout << "Receive sensor data from the serial bus " << std::endl;
+#endif
         ReceiveDataFromPic<BaseSensorState>(m_sSensorState);
+#ifdef DEBUG_EPUCK_MESSAGES
+        std::cout << "Received sensor data from the serial bus " << std::endl;
+#endif
         m_eBoardState = RECEIVE;
         break;
     }
@@ -221,15 +237,36 @@ void CRealEPuck::ReceiveSensorData() {
 
 void CRealEPuck::UpdateValues() {
     /*Update camera*/
-    if(m_pcOmnidirectionalCameraSensor!=NULL){
+    if(m_pcOmnidirectionalCameraSensor!=NULL)
+    {
+#ifdef DEBUG_EPUCK_MESSAGES
+        std::cout << "Updating m_pcOmnidirectionalCameraSensor " << std::endl;
+#endif
         m_pcOmnidirectionalCameraSensor->Update();
+#ifdef DEBUG_EPUCK_MESSAGES
+        std::cout << "Updated m_pcOmnidirectionalCameraSensor " << std::endl;
+#endif
     }
     /*Update pseudo range-and-bearing sensor*/
-    if(m_pcPseudoRangeAndBearingSensor!=NULL){
+    if(m_pcPseudoRangeAndBearingSensor!=NULL)
+    {
+#ifdef DEBUG_EPUCK_MESSAGES
+        std::cout << "Updating m_pcPseudoRangeAndBearingSensor " << std::endl;
+#endif
         m_pcPseudoRangeAndBearingSensor->UpdateValues();
+#ifdef DEBUG_EPUCK_MESSAGES
+        std::cout << "Updated m_pcPseudoRangeAndBearingSensor " << std::endl;
+#endif
     }
-    for(size_t i = 0; i < m_vecSerialSensors.size(); ++i) {
+    for(size_t i = 0; i < m_vecSerialSensors.size(); ++i)
+    {
+#ifdef DEBUG_EPUCK_MESSAGES
+        std::cout << "Updating m_vecSerialSensors " << i << std::endl;
+#endif
         m_vecSerialSensors[i]->UpdateValues();
+#ifdef DEBUG_EPUCK_MESSAGES
+        std::cout << "Updated m_vecSerialSensors " << i << std::endl;
+#endif
     }
 }
 

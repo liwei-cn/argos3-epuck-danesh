@@ -16,6 +16,14 @@ epuck_hom_swarm/flockingbehavior.h
 epuck_hom_swarm/flockingbehavior.cpp 
 epuck_hom_swarm/circlebehavior.h 
 epuck_hom_swarm/circlebehavior.cpp 
+epuck_hom_swarm/sensingandcommunication.h
+epuck_hom_swarm/sensingandcommunication.cpp
+epuck_hom_swarm/featurevectorsinrobotagent.h
+epuck_hom_swarm/featurevectorsinrobotagent.cpp
+epuck_hom_swarm/bayesianinferencefeaturevector.h
+epuck_hom_swarm/bayesianinferencefeaturevector.cpp
+epuck_hom_swarm/propriofeaturevector.h
+epuck_hom_swarm/propriofeaturevector.cpp
 ../plugins/robots/e-puck/real_robot/real_epuck_main.cpp)
 
 target_link_libraries(epuck_hom_swarm argos3plugin_${ARGOS_BUILD_FOR}_epuck) 

@@ -20,10 +20,13 @@ static UInt32 TIME_BETWEEN_TWO_RECEIVE = 20000;
 
 CRealEPuckPseudoRangeAndBearingSensor::CRealEPuckPseudoRangeAndBearingSensor()
 {
+    m_pcRNG                  = NULL;
     un_maxreceivedpacketsize = 1024;
     pun_receivedpacket       = new UInt8[un_maxreceivedpacketsize];
     pun_databuffer           = new UInt8[un_maxreceivedpacketsize];
     un_fromaddresslength     = sizeof(struct sockaddr_in);
+
+    in_receivedpacketinbuffersize = 0;
 }
 
 /****************************************/
@@ -51,11 +54,23 @@ CRealEPuckPseudoRangeAndBearingSensor::~CRealEPuckPseudoRangeAndBearingSensor()
 
 void CRealEPuckPseudoRangeAndBearingSensor::UpdateValues()
 {
+#ifdef DEBUG_RAB_MESSAGES
+    std::cout << "In RAB UpdateValues" << std::endl;
+#endif
     ClearPackets();
+#ifdef DEBUG_RAB_MESSAGES
+    std::cout << "Finished ClearPackets" << std::endl;
+#endif
 
     if(in_receivedpacketinbuffersize > 0)
     {
+#ifdef DEBUG_RAB_MESSAGES
+        std::cout << "in_receivedpacketinbuffersize " << in_receivedpacketinbuffersize << " Asking for lock m_tBufferQueueMutex" << std::endl;
+#endif
         pthread_mutex_lock(&m_tBufferQueueMutex);
+#ifdef DEBUG_RAB_MESSAGES
+        std::cout << "Lock in function UpdateValues " << std::endl;
+#endif
         UInt8* end   = pun_databuffer + in_receivedpacketinbuffersize;
         UInt8* index = pun_databuffer;
         while(index < end)
@@ -71,17 +86,31 @@ void CRealEPuckPseudoRangeAndBearingSensor::UpdateValues()
             SReceivedPacket* sNewPacket = new SReceivedPacket();
             sNewPacket->RobotId         = ms_RecvDesrzPkt.RobotId;
             sNewPacket->Range           = ((Real)ms_RecvDesrzPkt.Range)/10.0f;
-            sNewPacket->Bearing.FromValueInDegrees(((Real)ms_RecvDesrzPkt.Bearing)/10.0f);
+            //sNewPacket->Bearing.FromValueInDegrees(((Real)ms_RecvDesrzPkt.Bearing)/10.0f);
+            sNewPacket->Bearing.SetValue( (( ((Real)ms_RecvDesrzPkt.Bearing)/10.0f) - 180.0f) * CRadians::PI.GetValue() / 180.0f);
             sNewPacket->Data[0]         = ms_RecvDesrzPkt.Data[0];
             sNewPacket->Data[1]         = ms_RecvDesrzPkt.Data[1];
             sNewPacket->Data[2]         = ms_RecvDesrzPkt.Data[2];
             sNewPacket->Data[3]         = ms_RecvDesrzPkt.Data[3];
+
+            sNewPacket->Range = std::min(sNewPacket->Range, max_range); // the range can not exceed max_range
+
+            /**
+             * Adding noise to the RAB sensor. Disabled for now as the tracking is inherently noisy.
+            CVector2 noise_vec(m_pcRNG->Gaussian(noise_std_dev), m_pcRNG->Uniform(CRadians::SIGNED_RANGE));
+            CVector2 rab_reading = CVector2(sNewPacket->Range, sNewPacket->Bearing) + noise_vec;
+            sNewPacket->Range    = rab_reading.Length();
+            sNewPacket->Bearing  = rab_reading.Angle();
+            */
 
             m_tPackets.push_back(sNewPacket);
         }
 
         in_receivedpacketinbuffersize = 0; // to prevent an old packet in buffer from being read again
         pthread_mutex_unlock(&m_tBufferQueueMutex);
+#ifdef DEBUG_RAB_MESSAGES
+        std::cout << "Unlock in function UpdateValues " << std::endl;
+#endif
     }
 }
 
@@ -90,18 +119,36 @@ void CRealEPuckPseudoRangeAndBearingSensor::UpdateValues()
 
 void CRealEPuckPseudoRangeAndBearingSensor::Init(TConfigurationNode& t_node)
 {
-    /* get the range value (in cm) from the configuration file*/
-    Real range;
+    m_pcRNG = CRandom::CreateRNG("argos");
+
+    /* get the max range value (in cm) from the configuration file*/
     try
     {
-        GetNodeAttributeOrDefault(t_node, "range", range, 100.0f);
-        std::cout << "Range set to " << range << std::endl;
+        GetNodeAttributeOrDefault(t_node, "range", max_range, 100.0f);
+#ifdef DEBUG_RAB_MESSAGES
+        std::cout << "Range set to " << max_range << std::endl;
+#endif
     }
     catch (CARGoSException& ex)
     {
         THROW_ARGOSEXCEPTION_NESTED("Unable to init range attribute "
                                     << "is missing, mandatory", ex);
     }
+
+    try
+    {
+        GetNodeAttributeOrDefault(t_node, "noise_std_dev", noise_std_dev, 0.0f);
+#ifdef DEBUG_RAB_MESSAGES
+        std::cout << "noise_std_dev set to " << noise_std_dev << std::endl;
+#endif
+    }
+    catch (CARGoSException& ex)
+    {
+        THROW_ARGOSEXCEPTION_NESTED("Unable to init noise_std_dev attribute "
+                                    << "is missing, mandatory", ex);
+    }
+
+
 
     //Create socket
     socket_desc = socket(AF_INET , SOCK_DGRAM , 0);
@@ -121,8 +168,9 @@ void CRealEPuckPseudoRangeAndBearingSensor::Init(TConfigurationNode& t_node)
     {
         THROW_ARGOSEXCEPTION("Binding to port failed: " << ::strerror(errno));
     }
+#ifdef DEBUG_RAB_MESSAGES
     std::cout << "bind done"  << std::endl;
-
+#endif
 
     // Initialize the mutex
     pthread_mutex_init(&m_tBufferQueueMutex, NULL);
@@ -162,17 +210,27 @@ void CRealEPuckPseudoRangeAndBearingSensor::Recvfrom_Handler()
         }
         else
         {
+#ifdef DEBUG_RAB_MESSAGES
             std::cout << "Received data packet of size " << in_receivedpacketsize << " from " << inet_ntop(AF_INET, &(from.sin_addr), fromipaddress, INET_ADDRSTRLEN) << " port " << ntohs(from.sin_port) << std::endl;
-
+#endif
             if(in_receivedpacketsize%9 != 0)
             {
                 THROW_ARGOSEXCEPTION("Data packet size should be multiple of 5 <robot id, range, bearing>. Packet may be corrupted");
             }
 
             pthread_mutex_lock(&m_tBufferQueueMutex);
+
+#ifdef DEBUG_RAB_MESSAGES
+            std::cout << "Lock in function Recvfrom_Handler " << std::endl;
+#endif
+
             memcpy(pun_databuffer, pun_receivedpacket, in_receivedpacketsize * sizeof(UInt8));
             in_receivedpacketinbuffersize = in_receivedpacketsize;
             pthread_mutex_unlock(&m_tBufferQueueMutex);
+
+#ifdef DEBUG_RAB_MESSAGES
+            std::cout << "Unlock in function Recvfrom_Handler " << std::endl;
+#endif
         }
 
         /*

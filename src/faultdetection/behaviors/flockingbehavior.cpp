@@ -19,8 +19,8 @@ CFlockingBehavior::CFlockingBehavior(unsigned VelocityTimeWindowLength) :
 
 /******************************************************************************/
 /******************************************************************************/
-    
-bool CFlockingBehavior::TakeControl()
+
+bool CFlockingBehavior::TakeControl_RABEstimatedOdometry()
 {
     bool controltaken(false);
 
@@ -31,7 +31,6 @@ bool CFlockingBehavior::TakeControl()
     t_ListObservedRobots::iterator it_listobrob = m_pcListObservedRobots.begin();
     for (it_listobrob = m_pcListObservedRobots.begin(); it_listobrob != m_pcListObservedRobots.end(); ++it_listobrob)
     {
-
         // Only update the FlockingVector using robots you are observing
         for(size_t i = 0; i <  m_sSensoryData.m_RABSensorData.size(); ++i)
         {
@@ -43,7 +42,6 @@ bool CFlockingBehavior::TakeControl()
                     m_cFlockingVector +=it_listobrob->GetVelocity_MediumTimeWindow();
                     robotsinrange_flock++;
                 }
-
             }
         }
     }
@@ -59,7 +57,61 @@ bool CFlockingBehavior::TakeControl()
         robotsinrange_aggr++;
     }
 
-    if(robotsinrange_aggr > 3)
+    //if(robotsinrange_aggr > 3)
+    if(robotsinrange_aggr > 1)
+    {
+        m_cAggregationVector /= robotsinrange_aggr;
+        m_fAvgProximityNbrs = m_fAvgProximityNbrs / robotsinrange_aggr;
+    }
+    else
+    {
+        m_cAggregationVector = CVector2(0.0f, 0.0f);
+        m_fAvgProximityNbrs = 0.0f;
+    }
+
+
+    if(robotsinrange_flock > 0u)
+    {
+        m_cFlockingVector /= robotsinrange_flock;
+        return true;
+    }
+    else
+        return false;
+}
+
+/******************************************************************************/
+/******************************************************************************/    
+
+bool CFlockingBehavior::TakeControl()
+{
+    bool controltaken(false);
+
+    m_cFlockingVector.Set(0.0f, 0.0f);
+    unsigned robotsinrange_flock = 0;
+	
+   // Only update the FlockingVector using robots you are observing
+	for(size_t i = 0; i <  m_sSensoryData.m_RABSensorData.size(); ++i)
+	{
+		if(m_sSensoryData.m_RABSensorData[i]->Data[1] == 1)
+		{
+			m_cFlockingVector += CVector2((Real)(m_sSensoryData.m_RABSensorData[i]->Data[2])/10.0f, 
+										  (Real)(m_sSensoryData.m_RABSensorData[i]->Data[3])/10.0f);
+			robotsinrange_flock++;
+		}
+	}
+
+    m_fAvgProximityNbrs = 0.0f;
+    m_cAggregationVector.Set(0.0f, 0.0f);
+    unsigned robotsinrange_aggr = 0;
+    for(size_t i = 0; i <  m_sSensoryData.m_RABSensorData.size(); ++i)
+    {
+        m_cAggregationVector += CVector2(m_sSensoryData.m_RABSensorData[i]->Range, m_sSensoryData.m_RABSensorData[i]->Bearing);
+        m_fAvgProximityNbrs  += m_sSensoryData.m_RABSensorData[i]->Range;
+        robotsinrange_aggr++;
+    }
+
+    //if(robotsinrange_aggr > 3)
+    if(robotsinrange_aggr > 1)
     {
         m_cAggregationVector /= robotsinrange_aggr;
         m_fAvgProximityNbrs = m_fAvgProximityNbrs / robotsinrange_aggr;
@@ -89,6 +141,8 @@ void CFlockingBehavior::Action(Real &fLeftWheelSpeed, Real &fRightWheelSpeed)
     //if neighbours very far away, put more weight on aggregation; else put more weight on flocking
 
     m_fAvgProximityNbrs /= 100.0f; // normalise - max range is 100cm.
+	
+	assert(m_fAvgProximityNbrs <= 1.0f);
 
     // m_fAvgProximityNbrs = m_fAvgProximityNbrs*m_fAvgProximityNbrs; // enable to have flocks moving faster, but with more distance between robots of aggregate
 
@@ -360,6 +414,7 @@ CVector2 CFlockingBehavior::ObservedNeighbours::TrackRobotDisplacement(Real step
     }
 
 
+    //std::cout << "Displacement for robot id " << m_unRobotId << " is " << displacement << std::endl;
     return displacement;
 }
 

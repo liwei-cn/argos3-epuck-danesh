@@ -222,17 +222,18 @@ void CTestController::ControlStep()
     printf("velocity: %f\n", velocity);
     printf("length: %f, angle: %f\n", vector.Length(), ToDegrees(vector.Angle()).GetValue());
 
-    if(vector.Length() > 50)
-    {
-        if(ToDegrees(vector.Angle()).GetValue() > 0.0f)
-            wheels_actuator->SetLinearVelocity(velocity, 0.0f);
-        else
-            wheels_actuator->SetLinearVelocity(0.0f, velocity);
-    }
-    else
-        wheels_actuator->SetLinearVelocity(velocity, velocity);
+//    if(vector.Length() > 50)
+//    {
+//        if(ToDegrees(vector.Angle()).GetValue() > 0.0f)
+//            wheels_actuator->SetLinearVelocity(velocity, 0.0f);
+//        else
+//            wheels_actuator->SetLinearVelocity(0.0f, velocity);
+//    }
+//    else
+//        wheels_actuator->SetLinearVelocity(velocity, velocity);
 
 
+    wheels_actuator->SetLinearVelocity(CCI_EPuckWheelsActuator::MAX_VELOCITY_CM_SEC/3.0f , -CCI_EPuckWheelsActuator::MAX_VELOCITY_CM_SEC/3.0f );
 }
 
 REGISTER_CONTROLLER(CTestController, "test_controller");

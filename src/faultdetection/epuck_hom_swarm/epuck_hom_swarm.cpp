@@ -25,11 +25,8 @@
 CBehavior::SensoryData CBehavior::m_sSensoryData;
 CBehavior::RobotData CBehavior::m_sRobotData;
 
-//CProprioceptiveFeatureVector::RobotData CProprioceptiveFeatureVector::m_sRobotData;
-
-//CObservedFeatureVector::RobotData CObservedFeatureVector::m_sRobotData;
-
-//CBayesianInferenceFeatureVector::RobotData CBayesianInferenceFeatureVector::m_sRobotData;
+CProprioceptiveFeatureVector::RobotData CProprioceptiveFeatureVector::m_sRobotData;
+CBayesianInferenceFeatureVector::RobotData CBayesianInferenceFeatureVector::m_sRobotData;
 
 /****************************************/
 /****************************************/
@@ -46,6 +43,9 @@ CEPuckHomSwarm::ExperimentToRun::ExperimentToRun() :
 
 void CEPuckHomSwarm::ExperimentToRun::Init(TConfigurationNode& t_node)
 {
+#ifdef DEBUG_EXP_MESSAGES
+    std::cout << "ExperimentToRun Init function started " << std::endl;
+#endif
     std::string errorbehav;
 
     try
@@ -104,6 +104,9 @@ void CEPuckHomSwarm::ExperimentToRun::Init(TConfigurationNode& t_node)
 
     else
         THROW_ARGOSEXCEPTION("Invalid fault behavior");
+#ifdef DEBUG_EXP_MESSAGES
+    std::cout << "ExperimentToRun Init function ended" << std::endl;
+#endif
 }
 
 /****************************************/
@@ -115,14 +118,23 @@ CEPuckHomSwarm::CEPuckHomSwarm() :
     m_pcRABS(NULL),
     m_pcProximity(NULL),
     m_pcRNG(CRandom::CreateRNG("argos")),
+    m_pcRNG_FVs(CRandom::CreateRNG("argos")),
     b_damagedrobot(false),
     leftSpeed_prev(0.0f),
     rightSpeed_prev(0.0f),
     leftSpeed(0.0f),
-    rightSpeed(0.0f)
+    rightSpeed(0.0f),
+    u_num_consequtivecollisions(0)
 {
+    listFVsSensed.clear();
+    listMapFVsToRobotIds.clear();
+    listMapFVsToRobotIds_relay.clear();
+
+    m_uRobotFV = 9999; // for debugging purposes
+
     m_fRobotTimerAtStart = 0.0f;
     m_fInternalRobotTimer = m_fRobotTimerAtStart;
+
 }
 
 /****************************************/
@@ -130,7 +142,10 @@ CEPuckHomSwarm::CEPuckHomSwarm() :
 
 CEPuckHomSwarm::~CEPuckHomSwarm()
 {
-
+#ifdef DEBUG_EXP_MESSAGES
+    std::cout << "Destroying CEPuckHomSwarm controller " << std::endl;
+    std::cout << "Finished destroying CEPuckHomSwarm controller " << std::endl;
+#endif
 }
 
 /****************************************/
@@ -138,6 +153,9 @@ CEPuckHomSwarm::~CEPuckHomSwarm()
 
 void CEPuckHomSwarm::Init(TConfigurationNode& t_node)
 {
+#ifdef DEBUG_EXP_MESSAGES
+    std::cout << "Init function started " << std::endl;
+#endif
     try
     {
         /*
@@ -163,6 +181,7 @@ void CEPuckHomSwarm::Init(TConfigurationNode& t_node)
 
     // CCI_EPuckWheelsActuator::MAX_VELOCITY_CM_SEC / 3.0f = 10 cm/s
     m_sRobotDetails.SetKinematicDetails(CCI_EPuckWheelsActuator::MAX_VELOCITY_CM_SEC / 3.0f, CCI_EPuckWheelsActuator::MAX_VELOCITY_CM_SEC / 3.0f);
+    //m_sRobotDetails.SetKinematicDetails(2.5f, 2.5f);
 
     CopyRobotDetails(m_sRobotDetails);
 
@@ -171,6 +190,10 @@ void CEPuckHomSwarm::Init(TConfigurationNode& t_node)
 
     if(this->GetId().compare("ep"+m_sExpRun.id_FaultyRobotInSwarm) == 0)
         b_damagedrobot = true;
+
+#ifdef DEBUG_EXP_MESSAGES
+    std::cout << "Init function ended " << std::endl;
+#endif
 }
 
 /****************************************/
@@ -189,15 +212,28 @@ void CEPuckHomSwarm::CopyRobotDetails(RobotDetails& robdetails)
     CBehavior::m_sRobotData.m_cSoftTurnOnAngleThreshold = robdetails.m_cSoftTurnOnAngleThreshold;
 
 
-//    CProprioceptiveFeatureVector::m_sRobotData.MaxLinearSpeed           = robdetails.MaxLinearSpeed; //cm/controlcycle
-//    CProprioceptiveFeatureVector::m_sRobotData.MaxLinearAcceleration    = robdetails.MaxLinearAcceleration; //cm/controlcycle/controlcycle
-//    CProprioceptiveFeatureVector::m_sRobotData.HALF_INTERWHEEL_DISTANCE = robdetails.HALF_INTERWHEEL_DISTANCE; // m
-//    CProprioceptiveFeatureVector::m_sRobotData.INTERWHEEL_DISTANCE      = robdetails.INTERWHEEL_DISTANCE; // m
-//    CProprioceptiveFeatureVector::m_sRobotData.MaxAngularSpeed          = robdetails.MaxAngularSpeed; // rad/controlcycle
-//    CProprioceptiveFeatureVector::m_sRobotData.MaxAngularAcceleration   = robdetails.MaxAngularAcceleration; // rad/controlcycle/controlcycle
-//    CProprioceptiveFeatureVector::m_sRobotData.iterations_per_second    = robdetails.iterations_per_second;
-//    CProprioceptiveFeatureVector::m_sRobotData.seconds_per_iterations   = robdetails.seconds_per_iterations;
-//    CProprioceptiveFeatureVector::m_sRobotData.WHEEL_RADIUS             = robdetails.WHEEL_RADIUS;
+    CProprioceptiveFeatureVector::m_sRobotData.MaxLinearSpeed           = robdetails.MaxLinearSpeed; //cm/controlcycle
+    CProprioceptiveFeatureVector::m_sRobotData.MaxLinearAcceleration    = robdetails.MaxLinearAcceleration; //cm/controlcycle/controlcycle
+    CProprioceptiveFeatureVector::m_sRobotData.HALF_INTERWHEEL_DISTANCE = robdetails.HALF_INTERWHEEL_DISTANCE; // m
+    CProprioceptiveFeatureVector::m_sRobotData.INTERWHEEL_DISTANCE      = robdetails.INTERWHEEL_DISTANCE; // m
+    CProprioceptiveFeatureVector::m_sRobotData.MaxAngularSpeed          = robdetails.MaxAngularSpeed; // rad/controlcycle
+    CProprioceptiveFeatureVector::m_sRobotData.MaxAngularAcceleration   = robdetails.MaxAngularAcceleration; // rad/controlcycle/controlcycle
+    CProprioceptiveFeatureVector::m_sRobotData.iterations_per_second    = robdetails.iterations_per_second;
+    CProprioceptiveFeatureVector::m_sRobotData.seconds_per_iterations   = robdetails.seconds_per_iterations;
+    CProprioceptiveFeatureVector::m_sRobotData.WHEEL_RADIUS             = robdetails.WHEEL_RADIUS;
+
+
+    CBayesianInferenceFeatureVector::m_sRobotData.MaxLinearSpeed           = robdetails.MaxLinearSpeed; //cm/controlcycle
+    CBayesianInferenceFeatureVector::m_sRobotData.MaxLinearAcceleration    = robdetails.MaxLinearAcceleration; //cm/controlcycle/controlcycle
+    CBayesianInferenceFeatureVector::m_sRobotData.HALF_INTERWHEEL_DISTANCE = robdetails.HALF_INTERWHEEL_DISTANCE; // m
+    CBayesianInferenceFeatureVector::m_sRobotData.INTERWHEEL_DISTANCE      = robdetails.INTERWHEEL_DISTANCE; // m
+    CBayesianInferenceFeatureVector::m_sRobotData.MaxAngularSpeed          = robdetails.MaxAngularSpeed; // rad/controlcycle
+    CBayesianInferenceFeatureVector::m_sRobotData.MaxAngularAcceleration   = robdetails.MaxAngularAcceleration; // rad/controlcycle/controlcycle
+    CBayesianInferenceFeatureVector::m_sRobotData.iterations_per_second    = robdetails.iterations_per_second;
+    CBayesianInferenceFeatureVector::m_sRobotData.seconds_per_iterations   = robdetails.seconds_per_iterations;
+    CBayesianInferenceFeatureVector::m_sRobotData.WHEEL_RADIUS             = robdetails.WHEEL_RADIUS;
+
+    CBayesianInferenceFeatureVector::m_sRobotData.SetLengthOdometryTimeWindows();
 }
 
 /****************************************/
@@ -205,15 +241,18 @@ void CEPuckHomSwarm::CopyRobotDetails(RobotDetails& robdetails)
 
 void CEPuckHomSwarm::ControlStep()
 {
+    m_fInternalRobotTimer+=1.0f;
+
+#ifdef DEBUG_EXP_MESSAGES
+    std::cout << std::endl << std::endl << "Control-step " << m_fInternalRobotTimer << " start " << std::endl;
+#endif
+
     m_pcLEDs->SwitchLED((int)(m_fInternalRobotTimer) % 8, true); // Turn one of the 8 base LEDs on
     m_pcLEDs->SwitchLED((int)(m_fInternalRobotTimer - 1) % 8, false); // Turn previous base LED off
 
     m_pcLEDs->FrontLED((int)m_fInternalRobotTimer % 2 == 0);
     m_pcLEDs->BodyLED((int)m_fInternalRobotTimer % 2 == 1);
 
-    //std::cout << RobotIdStrToInt() << " " << m_fInternalRobotTimer << std::endl;
-
-    m_fInternalRobotTimer+=1.0f;
 
     bool b_RunningGeneralFaults(false);
     if(b_damagedrobot && (m_sExpRun.FBehavior == ExperimentToRun::FAULT_STRAIGHTLINE ||
@@ -270,11 +309,20 @@ void CEPuckHomSwarm::ControlStep()
 
     /*For flocking behavior - to compute relative velocity*/
     //CBehavior::m_sSensoryData.SetWheelSpeedsFromEncoders(m_pcWheelsEncoder->GetReading().VelocityLeftWheel, m_pcWheelsEncoder->GetReading().VelocityRightWheel);
-    CBehavior::m_sSensoryData.SetWheelSpeedsFromEncoders(leftSpeed_prev, rightSpeed_prev);
+    CBehavior::m_sSensoryData.SetWheelSpeedsFromEncoders(leftSpeed_prev, rightSpeed_prev); // the encoders will give the speed of the wheels set at the previous control-cycle
 
-    /*The robot has to continually track the velocity of its neighbours - since this is done over a period of time. It can't wait until the flocking behavior is activated to start tracking neighbours*/
-    m_pFlockingBehavior->SimulationStep();
+    /**
+     * The robot has to continually track the velocity of its neighbours - since this is done over a period of time. It can't wait until the flocking behavior is activated to start tracking neighbours.
+     * However as the flocking behavior is not to be tested, we disable this continious tracking
+     */
+//#ifdef DEBUG_EXP_MESSAGES
+//    std::cout << "Flocking behavior simulation step start " << std::endl;
+//#endif
 
+//    m_pFlockingBehavior->SimulationStep();
+//#ifdef DEBUG_EXP_MESSAGES
+//    std::cout << "Flocking behavior simulation step end " << std::endl;
+//#endif
 
     leftSpeed_prev = leftSpeed; rightSpeed_prev = rightSpeed;
     leftSpeed = 0.0; rightSpeed = 0.0f;
@@ -288,13 +336,38 @@ void CEPuckHomSwarm::ControlStep()
             {
                 /*if(b_damagedrobot)
                       (*i)->PrintBehaviorIdentity();*/
-                /*(*i)->PrintBehaviorIdentity();*/
+                (*i)->PrintBehaviorIdentity();
                 (*i)->Action(leftSpeed, rightSpeed);
             }
         } else
             (*i)->Suppress();
     }
 
+
+    if(m_pcProximity->GetReadings()[0].Value > 0.4f ||
+       m_pcProximity->GetReadings()[1].Value > 0.4f ||
+       m_pcProximity->GetReadings()[2].Value > 0.4f ||
+       m_pcProximity->GetReadings()[3].Value > 0.4f ||
+       m_pcProximity->GetReadings()[4].Value > 0.4f ||
+       m_pcProximity->GetReadings()[5].Value > 0.4f ||
+       m_pcProximity->GetReadings()[6].Value > 0.4f ||
+       m_pcProximity->GetReadings()[7].Value > 0.4f)
+        u_num_consequtivecollisions++;
+    else
+        u_num_consequtivecollisions = 0u;
+
+
+    // if the robot is colliding with the wall other robot for more than 5s, we reduce its speed by half
+    /* this will be harder to detect when we add noise on the IR sensors. Be wary of that. So using the noiseless variant of the IR sensors for this detection*/
+    if((Real)u_num_consequtivecollisions > (m_sRobotDetails.iterations_per_second * 1.0f))
+    {
+#ifdef DEBUG_EXP_MESSAGES
+        std::cout << "[Pseudo Motor Encoder Implementation] Prolonged collisions detected. Reducing motor speeds by 50%";
+#endif
+
+        leftSpeed  = leftSpeed/2.0f;
+        rightSpeed = rightSpeed/2.0f;
+    }
 
 
     if(b_damagedrobot && m_sExpRun.FBehavior == ExperimentToRun::FAULT_ACTUATOR_LWHEEL_SETZERO)
@@ -309,14 +382,43 @@ void CEPuckHomSwarm::ControlStep()
         rightSpeed = 0.0f;
     }
 
+    //for(CCI_EPuckProximitySensor::SReading reading : GetIRSensorReadings(b_damagedrobot, m_sExpRun.FBehavior))
+    //    printf("%.2f, ", reading.Value);
+
+#ifdef DEBUG_EXP_MESSAGES
+    std::cout << "Printing RAB Packets start " << std::endl;
+    CCI_EPuckPseudoRangeAndBearingSensor::TPackets rabsensor_readings = GetRABSensorReadings(b_damagedrobot, m_sExpRun.FBehavior);
+    for(CCI_EPuckPseudoRangeAndBearingSensor::SReceivedPacket* m_pRABPacket : rabsensor_readings)
+        printf("RobotId:%d, Range:%.2f, Bearing:%.2f\t", m_pRABPacket->RobotId, m_pRABPacket->Range, ToDegrees(m_pRABPacket->Bearing).GetValue());
+    printf("\n");
+    std::cout << "Printing RAB Packets end " << std::endl;
+#endif
     m_pcWheels->SetLinearVelocity(leftSpeed, rightSpeed); // in cm/s
 
-
-    //std::cout << "LS:  " << leftSpeed << " RS:  " << rightSpeed << std::endl;
-
-    CCI_EPuckPseudoRangeAndBearingSensor::TPackets rabsensor_readings = GetRABSensorReadings(b_damagedrobot, m_sExpRun.FBehavior);
+#ifdef DEBUG_EXP_MESSAGES
+    std::cout << "LS:  " << leftSpeed << " RS:  " << rightSpeed << std::endl;
+#endif
 
     m_uRobotId = RobotIdStrToInt();
+
+    /************************************************************************************/
+    // Adding noise for the motor encoders
+    leftSpeed_prev  += m_pcRNG->Uniform(CRange<Real>(-0.1f, 0.1f));
+    rightSpeed_prev += m_pcRNG->Uniform(CRange<Real>(-0.1f, 0.1f));
+    /************************************************************************************/
+
+#ifdef DEBUG_EXP_MESSAGES
+    std::cout << "SenseCommunicateDetect-step start " << std::endl;
+#endif
+    SenseCommunicateDetect(RobotIdStrToInt(), leftSpeed_prev, rightSpeed_prev,
+                           m_fInternalRobotTimer, rabsensor_readings,
+                           listMapFVsToRobotIds, listMapFVsToRobotIds_relay, listFVsSensed,
+                           m_cProprioceptiveFeatureVector, m_cBayesianInferredFeatureVector, m_pcRNG_FVs, m_uRobotFV, m_sExpRun.swarmbehav, beaconrobots_ids);
+
+#ifdef DEBUG_EXP_MESSAGES
+    std::cout << "SenseCommunicateDetect-step end " << std::endl;
+    std::cout << "Control-step " << m_fInternalRobotTimer << " end " << std::endl << std::endl;
+#endif
 }
 
 /****************************************/
@@ -357,7 +459,7 @@ void CEPuckHomSwarm::RunHomogeneousSwarmExperiment()
 
     if(m_sExpRun.SBehavior == ExperimentToRun::SWARM_AGGREGATION)
     {
-        CDisperseBehavior* pcDisperseBehavior = new CDisperseBehavior(0.1f, ToRadians(CDegrees(5.0f)));    // 0.1f reflects a distance of about 4.5cm
+        CDisperseBehavior* pcDisperseBehavior = new CDisperseBehavior(0.02f, ToRadians(CDegrees(5.0f))); // 0.1f reflects a distance of about 4.5cm. Reduced to 0.02 for physical robots
         m_vecBehaviors.push_back(pcDisperseBehavior);
 
         CAggregateBehavior* pcAggregateBehavior = new CAggregateBehavior(100.0f); //range threshold in cm //60.0
@@ -371,7 +473,7 @@ void CEPuckHomSwarm::RunHomogeneousSwarmExperiment()
 
     else if(m_sExpRun.SBehavior == ExperimentToRun::SWARM_DISPERSION)
     {
-        CDisperseBehavior* pcDisperseBehavior = new CDisperseBehavior(0.1f, ToRadians(CDegrees(5.0f)));
+        CDisperseBehavior* pcDisperseBehavior = new CDisperseBehavior(0.02f, ToRadians(CDegrees(5.0f))); //new CDisperseBehavior(0.1f, ToRadians(CDegrees(5.0f)))
         m_vecBehaviors.push_back(pcDisperseBehavior);
 
         CRandomWalkBehavior* pcRandomWalkBehavior = new CRandomWalkBehavior(0.0017f); //0.05f
@@ -382,7 +484,7 @@ void CEPuckHomSwarm::RunHomogeneousSwarmExperiment()
 
     else if(m_sExpRun.SBehavior == ExperimentToRun::SWARM_FLOCKING)
     {
-        CDisperseBehavior* pcDisperseBehavior = new CDisperseBehavior(0.1f, ToRadians(CDegrees(5.0f)));
+        CDisperseBehavior* pcDisperseBehavior = new CDisperseBehavior(0.02f, ToRadians(CDegrees(5.0f)));
         m_vecBehaviors.push_back(pcDisperseBehavior);
 
         m_vecBehaviors.push_back(m_pFlockingBehavior);
@@ -400,7 +502,7 @@ void CEPuckHomSwarm::RunHomogeneousSwarmExperiment()
         }
         else
         {
-            CDisperseBehavior* pcDisperseBehavior = new CDisperseBehavior(0.1f, ToRadians(CDegrees(5.0f)));    // 0.1f reflects a distance of about 4.5cm
+            CDisperseBehavior* pcDisperseBehavior = new CDisperseBehavior(0.02f, ToRadians(CDegrees(5.0f)));    // 0.1f reflects a distance of about 4.5cm
             m_vecBehaviors.push_back(pcDisperseBehavior);
 
             Real MAX_BEACON_SIGNAL_RANGE = 1.0f; //1m
@@ -411,6 +513,32 @@ void CEPuckHomSwarm::RunHomogeneousSwarmExperiment()
             m_vecBehaviors.push_back(pcRandomWalkBehavior);
         }
     }
+    else if(m_sExpRun.SBehavior == ExperimentToRun::SWARM_HOMING_MOVING_BEACON)
+    {
+        UInt8 BeaconRobotId = 201;
+        if(m_uRobotId == BeaconRobotId)
+        {
+            // ep201 is the beacon robot
+            CDisperseBehavior* pcDisperseBehavior = new CDisperseBehavior(0.02f, ToRadians(CDegrees(5.0f))); //new CDisperseBehavior(0.1f, ToRadians(CDegrees(5.0f)))
+            m_vecBehaviors.push_back(pcDisperseBehavior);
+
+            CRandomWalkBehavior* pcRandomWalkBehavior = new CRandomWalkBehavior(0.0017f); //0.05f
+            m_vecBehaviors.push_back(pcRandomWalkBehavior);
+        }
+        else
+        {
+            CDisperseBehavior* pcDisperseBehavior = new CDisperseBehavior(0.02f, ToRadians(CDegrees(5.0f)));    // 0.1f reflects a distance of about 4.5cm
+            m_vecBehaviors.push_back(pcDisperseBehavior);
+
+            Real MAX_BEACON_SIGNAL_RANGE = 1.0f; //1m
+            CHomingToFoodBeaconBehavior* pcHomingToFoodBeaconBehavior = new CHomingToFoodBeaconBehavior(BeaconRobotId, MAX_BEACON_SIGNAL_RANGE);
+            m_vecBehaviors.push_back(pcHomingToFoodBeaconBehavior);
+
+            CRandomWalkBehavior* pcRandomWalkBehavior = new CRandomWalkBehavior(0.0017f); //0.05f
+            m_vecBehaviors.push_back(pcRandomWalkBehavior);
+        }
+    }
+
     else if(m_sExpRun.SBehavior == ExperimentToRun::SWARM_STOP)
     {
     }

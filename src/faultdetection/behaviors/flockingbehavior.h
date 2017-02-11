@@ -21,6 +21,7 @@ public:
     CFlockingBehavior(unsigned VelocityTimeWindowLength);
 
     virtual bool TakeControl();
+	virtual bool TakeControl_RABEstimatedOdometry();
     virtual void Action(Real &fLeftWheelSpeed, Real &fRightWheelSpeed);
 
     virtual void SimulationStep();

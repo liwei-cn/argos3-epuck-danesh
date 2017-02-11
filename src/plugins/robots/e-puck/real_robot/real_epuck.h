@@ -11,10 +11,13 @@
 #ifndef REAL_EPUCK_H
 #define REAL_EPUCK_H
 
+//#define DEBUG_EPUCK_MESSAGES
+
 namespace argos {
    class CRealEPuck;
 }
 
+#include <argos3/plugins/robots/e-puck/real_robot/real_epuck_debugmessages.h>
 #include <argos3/plugins/robots/e-puck/real_robot/real_epuck_base.h>
 #include <argos3/plugins/robots/e-puck/real_robot/real_epuck_proximity_sensor.h>
 #include <argos3/plugins/robots/e-puck/real_robot/real_epuck_battery_sensor.h>
@@ -346,26 +349,33 @@ namespace argos {
        *
        * @param t_data the variable where to store the data received
        */
-      template<typename T> void ReceiveDataFromPic(T& t_data) {
+      template<typename T> void ReceiveDataFromPic(T& t_data)
+      {
         /* the size of the data read on the pic */
          ssize_t nRead;
          /* the size of the data left to read */
          size_t unLeftToRead = sizeof(T);
          /* current position in the data */
          UInt8* pnCurrentPos = (UInt8*) &t_data;
-         do {
+         do
+         {
+            std::cout << "Trying to read content of data from the pic " << std::endl;
             /* try to read the content of data to the pic */
             nRead = ::read(m_nPortFileDescriptor,
                            pnCurrentPos,
                            unLeftToRead);
             /* if there was an error during reading */
-            if (nRead < 0) {
+            if (nRead < 0)
+            {
                THROW_ARGOSEXCEPTION("Error reading data from the pic");
-            } else {
+            } else
+            {
                unLeftToRead -= nRead;
                pnCurrentPos += nRead;
             }
-         } while (unLeftToRead != 0);
+            std::cout << "Read nRead" << nRead << " unLeftToRead " << unLeftToRead << std::endl;
+         }
+         while (unLeftToRead != 0);
       }
 
       /**

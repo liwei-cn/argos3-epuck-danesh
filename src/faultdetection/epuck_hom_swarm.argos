@@ -13,7 +13,7 @@
   <!-- ************************* -->
  <!-- length in seconds -->
   <framework>
-        <experiment length="3000"
+        <experiment length="30"
                     ticks_per_second="10"
                     random_seed="777" />
   </framework>

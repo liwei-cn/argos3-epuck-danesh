@@ -9,7 +9,9 @@
 
 namespace argos {
 
-   static const Real SPEED_FACTOR = 1.29f / 0.0147f * (5.0f / 5.7f);
+   //static const Real SPEED_FACTOR = 1.29f / 0.0147f * (5.0f / 5.7f); //980.0f / (4.1f * 3.142f)
+   // convert speed from cm/s to steps/s
+   static const Real SPEED_FACTOR = 1000.0f / (4.1f * 3.142f); // 1000 steps of wheel encoder make one complete rotation (ideally); one rotation covers distance of (4.1f * 3.142f)cm
 
    /****************************************/
    /****************************************/

@@ -15,7 +15,6 @@ CDisperseBehavior::CDisperseBehavior(Real m_fProximitySensorThreshold, CRadians 
 
 bool CDisperseBehavior::TakeControl() 
 {
-
     /* Get readings from proximity sensor */
     /* Sum them together */
     m_cDiffusionVector.Set(0.0f, 0.0f);

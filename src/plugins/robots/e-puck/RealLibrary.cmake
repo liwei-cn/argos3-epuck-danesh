@@ -3,6 +3,8 @@
 #
 # Base headers
 set(ARGOS3_HEADERS_PLUGINS_ROBOTS_EPUCK_REALROBOT
+  # Debug messages
+  real_robot/real_epuck_debugmessages.h
   # Base
   real_robot/real_epuck.h
   real_robot/real_epuck_base.h
