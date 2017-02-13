@@ -19,6 +19,12 @@
 /* Logging */
 #include <argos3/core/utility/logging/argos_log.h>
 
+/* Network communication with tracking server to sync robots*/
+#include<stdio.h>
+#include<string.h>    //strlen
+#include<sys/socket.h>
+#include<arpa/inet.h> //inet_addr
+
 /****************************************/
 /****************************************/
 
@@ -53,9 +59,18 @@ void CEPuckHomSwarm::ExperimentToRun::Init(TConfigurationNode& t_node)
         GetNodeAttribute(t_node, "swarm_behavior", swarmbehav);
         GetNodeAttribute(t_node, "fault_behavior", errorbehav);
         GetNodeAttribute(t_node, "id_faulty_robot", id_FaultyRobotInSwarm);
+        GetNodeAttribute(t_node, "output_filename", m_strOutput);
     }
     catch(CARGoSException& ex)
             THROW_ARGOSEXCEPTION_NESTED("Error initializing type of experiment to run, and fault to simulate.", ex);
+
+
+
+    /* Open the file, erasing its contents */
+    m_cOutput.open(m_strOutput.c_str(), std::ios_base::trunc | std::ios_base::out);
+    //m_cOutput << "TimeStamp\tInternalCounter\tRobot_Id\tProprioceptiveFV\tObserving_RobotIds\tObserving_RobotFVs\n" << std::endl;
+
+
 
     if (swarmbehav.compare("SWARM_AGGREGATION") == 0)
         SBehavior = SWARM_AGGREGATION;
@@ -65,6 +80,8 @@ void CEPuckHomSwarm::ExperimentToRun::Init(TConfigurationNode& t_node)
         SBehavior = SWARM_FLOCKING;
     else if (swarmbehav.compare("SWARM_HOMING") == 0)
         SBehavior = SWARM_HOMING;
+    else if (swarmbehav.compare("SWARM_HOMING_MOVING_BEACON") == 0)
+        SBehavior = SWARM_HOMING_MOVING_BEACON;
     else if (swarmbehav.compare("SWARM_STOP") == 0)
         SBehavior = SWARM_STOP;
     else
@@ -124,7 +141,8 @@ CEPuckHomSwarm::CEPuckHomSwarm() :
     rightSpeed_prev(0.0f),
     leftSpeed(0.0f),
     rightSpeed(0.0f),
-    u_num_consequtivecollisions(0)
+    u_num_consequtivecollisions(0),
+    b_randompositionrobot(true)
 {
     listFVsSensed.clear();
     listMapFVsToRobotIds.clear();
@@ -146,6 +164,7 @@ CEPuckHomSwarm::~CEPuckHomSwarm()
     std::cout << "Destroying CEPuckHomSwarm controller " << std::endl;
     std::cout << "Finished destroying CEPuckHomSwarm controller " << std::endl;
 #endif
+    m_sExpRun.m_cOutput.close();
 }
 
 /****************************************/
@@ -241,6 +260,95 @@ void CEPuckHomSwarm::CopyRobotDetails(RobotDetails& robdetails)
 
 void CEPuckHomSwarm::ControlStep()
 {
+    if(b_randompositionrobot)
+    {
+#ifdef DEBUG_EXP_MESSAGES
+        std::cout << "Positioning the robot to new random position by running dispersion behavior" << std::endl;
+#endif
+
+        m_vecBehaviors.clear();
+        CDisperseBehavior* pcDisperseBehavior = new CDisperseBehavior(0.02f, ToRadians(CDegrees(5.0f))); //new CDisperseBehavior(0.1f, ToRadians(CDegrees(5.0f)))
+        m_vecBehaviors.push_back(pcDisperseBehavior);
+
+        CRandomWalkBehavior* pcRandomWalkBehavior = new CRandomWalkBehavior(0.05f); //0.0017f
+        m_vecBehaviors.push_back(pcRandomWalkBehavior);
+
+        CBehavior::m_sSensoryData.SetSensoryData(m_pcRNG, m_fInternalRobotTimer, GetIRSensorReadings(false, m_sExpRun.FBehavior), GetRABSensorReadings(false, m_sExpRun.FBehavior));
+
+        leftSpeed = 0.0; rightSpeed = 0.0f;
+        bool bControlTaken = false;
+        for (TBehaviorVectorIterator i = m_vecBehaviors.begin(); i != m_vecBehaviors.end(); i++)
+        {
+            if (!bControlTaken)
+            {
+                bControlTaken = (*i)->TakeControl();
+                if (bControlTaken)
+                {
+#ifdef DEBUG_EXP_MESSAGES
+                    (*i)->PrintBehaviorIdentity();
+#endif
+                    (*i)->Action(leftSpeed, rightSpeed);
+                }
+            } else
+                (*i)->Suppress();
+        }
+        m_pcWheels->SetLinearVelocity(leftSpeed, rightSpeed); // in cm/s
+        m_fInternalRobotTimer+=1.0f;
+
+        if(m_fInternalRobotTimer == 300) // Random positioning for 10s
+        {
+            b_randompositionrobot = false;
+            m_fInternalRobotTimer = 0.0f;
+
+            /**
+                Send message to tracking server -- exp port
+                On receiving reply, start expt.
+            */
+
+            int socket_desc;
+            struct sockaddr_in trackingserver;
+
+            //Create socket
+            socket_desc = socket(AF_INET , SOCK_STREAM , 0);
+            if (socket_desc == -1)
+            {
+                printf("Could not create socket");
+            }
+
+            trackingserver.sin_addr.s_addr = inet_addr(TRACKING_SERVER_IPADDRESS);
+            trackingserver.sin_family = AF_INET;
+            trackingserver.sin_port = htons(ROBOTS_SYNC_PORT);
+
+            //Connect to remote trackingserver
+            if (connect(socket_desc , (struct sockaddr *)&trackingserver , sizeof(trackingserver)) < 0)
+                THROW_ARGOSEXCEPTION("Connection error. Could not connect to tracking server for robot sync."  << ::strerror(errno));
+
+            std::cout << "Connected to tracking server " << std::endl;
+
+            //Send data
+            char server_message[] = "Requesting experiment start";
+            if( send(socket_desc , server_message , strlen(server_message) , 0) < 0)
+                THROW_ARGOSEXCEPTION("Sending message to tracking server for robot sync. has failed");
+
+            std::cout << "Data sent to tracking server for robot sync." << std::endl;
+
+            char server_reply[2000];
+            //Receive a reply from the server
+            if(recv(socket_desc, server_reply , 2000 , 0) < 0)
+                THROW_ARGOSEXCEPTION("Recv reply from tracking server for robot sync. has failed");
+
+            std::cout << "Reply received from tracking server for robot sync.\n" << std::endl;
+
+            puts(server_reply);
+
+            // Can now start experiment
+#ifdef DEBUG_EXP_MESSAGES
+            std::cout << "STARTING EXPERIMENT..." << std::endl;
+#endif
+        }
+        return;
+    }
+
     m_fInternalRobotTimer+=1.0f;
 
 #ifdef DEBUG_EXP_MESSAGES
@@ -264,10 +372,11 @@ void CEPuckHomSwarm::ControlStep()
         RunGeneralFaults();
     }
 
-    else if(m_sExpRun.SBehavior == ExperimentToRun::SWARM_AGGREGATION ||
-            m_sExpRun.SBehavior == ExperimentToRun::SWARM_DISPERSION  ||
-            m_sExpRun.SBehavior == ExperimentToRun::SWARM_FLOCKING    ||
-            m_sExpRun.SBehavior == ExperimentToRun::SWARM_HOMING      ||
+    else if(m_sExpRun.SBehavior == ExperimentToRun::SWARM_AGGREGATION               ||
+            m_sExpRun.SBehavior == ExperimentToRun::SWARM_DISPERSION                ||
+            m_sExpRun.SBehavior == ExperimentToRun::SWARM_FLOCKING                  ||
+            m_sExpRun.SBehavior == ExperimentToRun::SWARM_HOMING                    ||
+            m_sExpRun.SBehavior == ExperimentToRun::SWARM_HOMING_MOVING_BEACON      ||
             m_sExpRun.SBehavior == ExperimentToRun::SWARM_STOP)
         RunHomogeneousSwarmExperiment();
 
@@ -336,7 +445,9 @@ void CEPuckHomSwarm::ControlStep()
             {
                 /*if(b_damagedrobot)
                       (*i)->PrintBehaviorIdentity();*/
+#ifdef DEBUG_EXP_MESSAGES
                 (*i)->PrintBehaviorIdentity();
+#endif
                 (*i)->Action(leftSpeed, rightSpeed);
             }
         } else
@@ -344,17 +455,20 @@ void CEPuckHomSwarm::ControlStep()
     }
 
 
-    if(m_pcProximity->GetReadings()[0].Value > 0.4f ||
-       m_pcProximity->GetReadings()[1].Value > 0.4f ||
-       m_pcProximity->GetReadings()[2].Value > 0.4f ||
-       m_pcProximity->GetReadings()[3].Value > 0.4f ||
-       m_pcProximity->GetReadings()[4].Value > 0.4f ||
-       m_pcProximity->GetReadings()[5].Value > 0.4f ||
-       m_pcProximity->GetReadings()[6].Value > 0.4f ||
-       m_pcProximity->GetReadings()[7].Value > 0.4f)
+    if(GetIRSensorReadings(false, m_sExpRun.FBehavior)[0].Value > 0.4f ||
+       GetIRSensorReadings(false, m_sExpRun.FBehavior)[1].Value > 0.4f ||
+       GetIRSensorReadings(false, m_sExpRun.FBehavior)[2].Value > 0.4f ||
+       GetIRSensorReadings(false, m_sExpRun.FBehavior)[3].Value > 0.4f ||
+       GetIRSensorReadings(false, m_sExpRun.FBehavior)[4].Value > 0.4f ||
+       GetIRSensorReadings(false, m_sExpRun.FBehavior)[5].Value > 0.4f ||
+       GetIRSensorReadings(false, m_sExpRun.FBehavior)[6].Value > 0.4f ||
+       GetIRSensorReadings(false, m_sExpRun.FBehavior)[7].Value > 0.4f)
         u_num_consequtivecollisions++;
     else
         u_num_consequtivecollisions = 0u;
+
+    for(CCI_EPuckProximitySensor::SReading reading : GetIRSensorReadings(false, m_sExpRun.FBehavior))
+        printf("%.2f, ", reading.Value);
 
 
     // if the robot is colliding with the wall other robot for more than 5s, we reduce its speed by half
@@ -410,7 +524,8 @@ void CEPuckHomSwarm::ControlStep()
 #ifdef DEBUG_EXP_MESSAGES
     std::cout << "SenseCommunicateDetect-step start " << std::endl;
 #endif
-    SenseCommunicateDetect(RobotIdStrToInt(), leftSpeed_prev, rightSpeed_prev,
+    SenseCommunicateDetect(m_sExpRun.m_cOutput,
+                           RobotIdStrToInt(), leftSpeed_prev, rightSpeed_prev,
                            m_fInternalRobotTimer, rabsensor_readings,
                            listMapFVsToRobotIds, listMapFVsToRobotIds_relay, listFVsSensed,
                            m_cProprioceptiveFeatureVector, m_cBayesianInferredFeatureVector, m_pcRNG_FVs, m_uRobotFV, m_sExpRun.swarmbehav, beaconrobots_ids);

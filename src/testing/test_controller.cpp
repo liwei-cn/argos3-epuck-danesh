@@ -209,31 +209,40 @@ void CTestController::ControlStep()
     printf("\n\n");
 
 
+    double velocity = CCI_EPuckWheelsActuator::MAX_VELOCITY_CM_SEC / 3.0f; // CCI_EPuckWheelsActuator::MAX_VELOCITY_CM_SEC = 30cm/s
 
-    double velocity = CCI_EPuckWheelsActuator::MAX_VELOCITY_CM_SEC / 4;
-
-    CVector2 vector;
-
-    for(int i = 0; i < proximity_sensor_readings.size(); ++i)
-        vector += CVector2(proximity_sensor_readings[i].Value, proximity_sensor_readings[i].Angle);
-
-    vector /= proximity_sensor_readings.size();
-
-    printf("velocity: %f\n", velocity);
-    printf("length: %f, angle: %f\n", vector.Length(), ToDegrees(vector.Angle()).GetValue());
-
-//    if(vector.Length() > 50)
-//    {
-//        if(ToDegrees(vector.Angle()).GetValue() > 0.0f)
-//            wheels_actuator->SetLinearVelocity(velocity, 0.0f);
-//        else
-//            wheels_actuator->SetLinearVelocity(0.0f, velocity);
-//    }
-//    else
-//        wheels_actuator->SetLinearVelocity(velocity, velocity);
-
-
-    wheels_actuator->SetLinearVelocity(CCI_EPuckWheelsActuator::MAX_VELOCITY_CM_SEC/3.0f , -CCI_EPuckWheelsActuator::MAX_VELOCITY_CM_SEC/3.0f );
+    //Stage 1 -- robot moves straight for 50cm
+    if(control_step < 50)
+    {
+        std::cout << "Stage 1 -- moving straight 50cm " << std::endl;
+        wheels_actuator->SetLinearVelocity(velocity , velocity);
+    }
+    //Stage 2 -- robot turns clockwise pi radians
+    else if (control_step > 50 && control_step <= 58)
+    {
+        std::cout << "Stage 2 -- robot turns clockwise pi radians " << std::endl;
+        // With motor speeds at +10cm/s (left) and -10cm/s (right), the robot turns 3.77358490566 rad/s. So turning pi radians would take 0.8325220532s = 8.3 steps
+        wheels_actuator->SetLinearVelocity(velocity, -velocity);
+    }
+    //Stage 3 -- robot turns counter-clockwise 2pi radians
+    else if (control_step > 58 && control_step <= 74)
+    {
+        std::cout << "Stage 3 -- robot turns counter-clockwise 2pi radians " << std::endl;
+        // With motor speeds at +10cm/s (left) and -10cm/s (right), the robot turns 3.77358490566 rad/s. So turning 2pi radians would take 1.6650441064s = 16.65 steps
+        wheels_actuator->SetLinearVelocity(-velocity, velocity);
+    }
+    //Stage 4 -- robot again moves straight 50cm
+    else if (control_step > 74 && control_step <= (74+50))
+    {
+        std::cout << "Stage 4 -- robot now returning 50cm" << std::endl;
+        // With motor speeds at +10cm/s (left) and -10cm/s (right), the robot turns 3.77358490566 rad/s. So turning 2pi radians would take 1.6650441064s = 16.65 steps
+        wheels_actuator->SetLinearVelocity(velocity, velocity);
+    }
+    else
+    {
+        std::cout << "Test complete" << std::endl;
+        wheels_actuator->SetLinearVelocity(0.0f, 0.0f);
+    }
 }
 
 REGISTER_CONTROLLER(CTestController, "test_controller");

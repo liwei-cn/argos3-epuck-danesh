@@ -11,9 +11,9 @@
   <!-- ************************* -->
   <!-- * General configuration * -->
   <!-- ************************* -->
- <!-- length in seconds -->
+ <!-- length in seconds -->   <!--300 + 30 (random positioning at start) -->
   <framework>
-        <experiment length="30"
+        <experiment length="330"
                     ticks_per_second="10"
                     random_seed="777" />
   </framework>
@@ -29,7 +29,7 @@
                                  library="build_linux/faultdetection/libepuck_hom_swarm.so">
                  <sensors>
                          <epuck_proximity implementation="default" show_rays="false"/>
-                         <epuck_pseudo_range_and_bearing implementation="default" show_rays="false" range="100"/>
+                         <epuck_pseudo_range_and_bearing implementation="default" show_rays="false" noise_std_dev="0.01" range="150"/>
                  </sensors>
 
                  <actuators>
@@ -37,9 +37,10 @@
                          <epuck_base_leds implementation="default" medium="leds"/>
                  </actuators>
                  <params>
-                        <experiment_run swarm_behavior="SWARM_DISPERSION"
+                        <experiment_run swarm_behavior="SWARM_HOMING_MOVING_BEACON"
                                         fault_behavior="FAULT_ACTUATOR_LWHEEL_SETZERO"
-                                        id_faulty_robot="-1" />
+                                        id_faulty_robot="-1"
+                                        output_filename="nohup.txt"/>
                  </params>
         </epuck_homswarm_controller>
   </controllers>

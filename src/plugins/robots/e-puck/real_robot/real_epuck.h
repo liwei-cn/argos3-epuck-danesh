@@ -359,7 +359,9 @@ namespace argos {
          UInt8* pnCurrentPos = (UInt8*) &t_data;
          do
          {
+#ifdef DEBUG_EPUCK_MESSAGES
             std::cout << "Trying to read content of data from the pic " << std::endl;
+#endif
             /* try to read the content of data to the pic */
             nRead = ::read(m_nPortFileDescriptor,
                            pnCurrentPos,
@@ -373,7 +375,9 @@ namespace argos {
                unLeftToRead -= nRead;
                pnCurrentPos += nRead;
             }
+#ifdef DEBUG_EPUCK_MESSAGES
             std::cout << "Read nRead" << nRead << " unLeftToRead " << unLeftToRead << std::endl;
+#endif
          }
          while (unLeftToRead != 0);
       }

@@ -2,7 +2,7 @@
 <argos-configuration>
 
     <framework>
-        <experiment length="5000"
+        <experiment length="15"
                     ticks_per_second="10"/>
     </framework>
 

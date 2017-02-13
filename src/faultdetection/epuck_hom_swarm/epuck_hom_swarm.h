@@ -9,6 +9,8 @@
 #define EPUCK_HOMSWARM_H
 
 //#define DEBUG_EXP_MESSAGES
+#define TRACKING_SERVER_IPADDRESS "192.168.1.103"
+#define ROBOTS_SYNC_PORT 10021
 
 /****************************************/
 /****************************************/
@@ -114,8 +116,10 @@ public:
         } FBehavior;
 
         std::string id_FaultyRobotInSwarm;
-        std::string swarmbehav;
+        std::string swarmbehav;        
 
+        std::string m_strOutput;
+        std::ofstream m_cOutput;
 
         ExperimentToRun();
         void Init(TConfigurationNode& t_node);
@@ -360,6 +364,8 @@ private:
     unsigned m_uRobotId, m_uRobotFV; // Robot Id and proprioceptively computed FV
 
     Real leftSpeed, rightSpeed, leftSpeed_prev, rightSpeed_prev;
+
+    bool b_randompositionrobot; // seeding the expeiment with random initial positions for the robots
 };
 
 #endif
