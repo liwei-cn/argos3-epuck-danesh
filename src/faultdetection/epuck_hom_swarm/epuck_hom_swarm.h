@@ -9,7 +9,7 @@
 #define EPUCK_HOMSWARM_H
 
 //#define DEBUG_EXP_MESSAGES
-#define TRACKING_SERVER_IPADDRESS "192.168.1.103"
+#define TRACKING_SERVER_IPADDRESS "192.168.1.101"
 #define ROBOTS_SYNC_PORT 10021
 
 /****************************************/
@@ -87,7 +87,8 @@ public:
             SWARM_HOMING_MOVING_BEACON,
             SWARM_FLOCKING,
             SWARM_STOP,
-            SWARM_NONE
+            SWARM_NONE,
+            SWARM_AGGREGATION_DISPERSION
         };
         enum SwarmBehavior SBehavior;
 
@@ -120,6 +121,10 @@ public:
 
         std::string m_strOutput;
         std::ofstream m_cOutput;
+
+        Real behavior_transition_probability;
+
+        std::string RobotId;
 
         ExperimentToRun();
         void Init(TConfigurationNode& t_node);
@@ -366,6 +371,8 @@ private:
     Real leftSpeed, rightSpeed, leftSpeed_prev, rightSpeed_prev;
 
     bool b_randompositionrobot; // seeding the expeiment with random initial positions for the robots
+
+    bool m_bRobotSwitchedBehavior; // used to indicate if the robot has switched behavior for swarm behavior transition experiments
 };
 
 #endif

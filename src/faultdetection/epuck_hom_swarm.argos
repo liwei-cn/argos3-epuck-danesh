@@ -15,7 +15,7 @@
   <framework>
         <experiment length="330"
                     ticks_per_second="10"
-                    random_seed="777" />
+                    random_seed="555" />
   </framework>
 
 
@@ -37,10 +37,11 @@
                          <epuck_base_leds implementation="default" medium="leds"/>
                  </actuators>
                  <params>
-                        <experiment_run swarm_behavior="SWARM_HOMING_MOVING_BEACON"
-                                        fault_behavior="FAULT_ACTUATOR_LWHEEL_SETZERO"
+                        <experiment_run swarm_behavior="SWARM_AGGREGATION"
+                                        fault_behavior="FAULT_NONE"
                                         id_faulty_robot="-1"
-                                        output_filename="nohup.txt"/>
+                                        output_filename="filenamenotused"
+                                        behavior_transition_probability="-1" />
                  </params>
         </epuck_homswarm_controller>
   </controllers>

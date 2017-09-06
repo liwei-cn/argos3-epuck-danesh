@@ -177,11 +177,18 @@ void CRealEPuck::SendActuatorData() {
     case RECEIVE:
     {
         /* Send data to the I2C bus */
-        for(size_t i = 0; i < m_vecI2CActuators.size(); ++i) {
+        for(size_t i = 0; i < m_vecI2CActuators.size(); ++i)
+        {
             m_vecI2CActuators[i]->SendData();
         }
+
+        /**
+        assert(m_sActuatorState.Reset != 'R'); // Reset flag being sent prematurely (before ~CRealEpuck() is called) may be the reason for the pic going out-of-sync with the ARM and the ARGoS code hanging. Checking if it is being sent.
+        */
+
         /* Send data to the serial bus */
         SendDataToPic<BaseActuatorState>(m_sActuatorState);
+
         /* Set new state */
         m_eBoardState = SEND;
         break;
@@ -656,7 +663,7 @@ void CRealEPuck::InitController(const std::string& str_config_file_name,
         /*
           * Create Random category argos
           */
-        UInt32 unRandomSeed = 0;
+        unRandomSeed = 0;
         GetNodeAttributeOrDefault<UInt32>(tExperiment,
                                           "random_seed",
                                           unRandomSeed,

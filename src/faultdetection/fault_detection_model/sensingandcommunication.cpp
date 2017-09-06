@@ -128,12 +128,34 @@ void SenseCommunicateDetect(std::ofstream &m_cOutput, unsigned RobotId, Real lef
     ptr_simple_time = &simple_time;
     struct tm* ptr_local_time;
 
+    clock_gettime(CLOCK_REALTIME, &spec);
+    simple_time = time(ptr_simple_time);
+    ptr_local_time = localtime(ptr_simple_time);
+
+#ifdef DEBUG_FV_MESSAGES
+    std::cout << "TimeStamp: " << ptr_local_time->tm_hour << ":" << ptr_local_time->tm_min << ":" << ptr_local_time->tm_sec << ":" << round(spec.tv_nsec / 1.0e6) << "\t";
+    std::cout << "Step: " << m_fInternalRobotTimer << "\t";
+    std::cout << "PropAndObsFVs\t";
+    std::cout << "RobotId: " << RobotId << "  PropFV: " << m_uRobotFV << "\t";
+#endif
+
     m_cOutput << "TimeStamp: " << ptr_local_time->tm_hour << ":" << ptr_local_time->tm_min << ":" << ptr_local_time->tm_sec << ":" << round(spec.tv_nsec / 1.0e6) << "\t";
     m_cOutput << "Step: " << m_fInternalRobotTimer << "\t";
     m_cOutput << "PropAndObsFVs\t";
     m_cOutput << "RobotId: " << RobotId << "  PropFV: " << m_uRobotFV << "\t";
 
-    t_listMapFVsToRobotIds::iterator itd = listMapFVsToRobotIds.begin();
+    t_listMapFVsToRobotIds::iterator itd;
+#ifdef DEBUG_FV_MESSAGES
+    itd = listMapFVsToRobotIds.begin();
+    while(itd != listMapFVsToRobotIds.end())
+    {
+        std::cout << "ObservedRobotId: " << itd->uRobotId << "  ObservedRobotFV: " << itd->uFV << "\t";
+        ++itd;
+    }
+    std::cout << std::endl;
+#endif
+
+    itd = listMapFVsToRobotIds.begin();
     while(itd != listMapFVsToRobotIds.end())
     {
         m_cOutput << "ObservedRobotId: " << itd->uRobotId << "  ObservedRobotFV: " << itd->uFV << "\t";
@@ -142,9 +164,27 @@ void SenseCommunicateDetect(std::ofstream &m_cOutput, unsigned RobotId, Real lef
     m_cOutput << std::endl;
 
 
+#ifdef DEBUG_FV_MESSAGES
+    std::cout << "TimeStamp: " << ptr_local_time->tm_hour << ":" << ptr_local_time->tm_min << ":" << ptr_local_time->tm_sec << ":" << round(spec.tv_nsec / 1.0e6) << "\t";
+    std::cout << "Step: " << m_fInternalRobotTimer << "\t";
+    std::cout << "DetailedObs\t";
+#endif
+
     m_cOutput << "TimeStamp: " << ptr_local_time->tm_hour << ":" << ptr_local_time->tm_min << ":" << ptr_local_time->tm_sec << ":" << round(spec.tv_nsec / 1.0e6) << "\t";
     m_cOutput << "Step: " << m_fInternalRobotTimer << "\t";
     m_cOutput << "DetailedObs\t";
+
+#ifdef DEBUG_FV_MESSAGES
+    itd = listMapFVsToRobotIds.begin();
+    while(itd != listMapFVsToRobotIds.end())
+    {
+        std::cout << "ObservedRobotId: " << itd->uRobotId << "  ObservedRobotFV: " << itd->uFV << "  FirstTimeObserved: " << itd->fTimeSensed
+                  << "  Range: " << itd->uRange << "  NumObsS-M: " << itd->uNumobs_sm << "  NumObsS-nM: " << itd->uNumobs_nsm
+                  << "  NumObsM: " << itd->uNumobs_m << "\t";
+        ++itd;
+    }
+    std::cout << std::endl;
+#endif
 
     itd = listMapFVsToRobotIds.begin();
     while(itd != listMapFVsToRobotIds.end())
@@ -156,12 +196,28 @@ void SenseCommunicateDetect(std::ofstream &m_cOutput, unsigned RobotId, Real lef
     }
     m_cOutput << std::endl;
 
+#ifdef DEBUG_FV_MESSAGES
+    std::cout << "TimeStamp: " << ptr_local_time->tm_hour << ":" << ptr_local_time->tm_min << ":" << ptr_local_time->tm_sec << ":" << round(spec.tv_nsec / 1.0e6) << "\t";
+    std::cout << "Step: " << m_fInternalRobotTimer << "\t";
+    std::cout << "FVDist\t";
+#endif
 
     m_cOutput << "TimeStamp: " << ptr_local_time->tm_hour << ":" << ptr_local_time->tm_min << ":" << ptr_local_time->tm_sec << ":" << round(spec.tv_nsec / 1.0e6) << "\t";
     m_cOutput << "Step: " << m_fInternalRobotTimer << "\t";
     m_cOutput << "FVDist\t";
 
-    t_listFVsSensed::iterator itdist = listFVsSensed.begin();
+    t_listFVsSensed::iterator itdist;
+#ifdef DEBUG_FV_MESSAGES
+    itdist = listFVsSensed.begin();
+    while(itdist != listFVsSensed.end())
+    {
+        std::cout <<  "ObservedFV: " << itdist->uFV << "  NumRobots: " << itdist->fRobots << "\t";
+        ++itdist;
+    }
+    std::cout << std::endl << std::endl;
+#endif
+
+    itdist = listFVsSensed.begin();
     while(itdist != listFVsSensed.end())
     {
         m_cOutput <<  "ObservedFV: " << itdist->uFV << "  NumRobots: " << itdist->fRobots << "\t";

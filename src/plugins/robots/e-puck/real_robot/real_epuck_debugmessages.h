@@ -9,7 +9,9 @@
 #ifndef REAL_EPUCK_DEBUGMESSAGES_H
 #define REAL_EPUCK_DEBUGMESSAGES_H
 
-//#define DEBUG_EPUCK_MESSAGES
+
+
+#define DEBUG_EPUCK_MESSAGES
 //#define DEBUG_RAB_MESSAGES
 
 #define DEBUG_EXP_MESSAGES // epuck_hom_swarm experiment
@@ -19,5 +21,7 @@
 //#define DEBUG_PROPRIOCEPTIVE_FV_MESSAGES // debug messages on proprioceptively computed FVs
 
 //#define DEBUG_BAYESIANOBSERVED_FV_MESSAGES // debug messages on bayesian inferred via observation FVs
+
+
 
 #endif

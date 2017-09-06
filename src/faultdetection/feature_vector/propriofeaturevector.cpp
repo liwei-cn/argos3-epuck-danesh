@@ -235,7 +235,6 @@ unsigned int CProprioceptiveFeatureVector::SimulationStep()
         m_unValue += (unsigned int)m_pfFeatureValues[i] * (1 << i);
 
 #ifdef DEBUG_PROPRIOCEPTIVE_FV_MESSAGES
-    if((int)m_sSensoryData.m_rTime % 20 == 0)
         PrintFeatureDetails();
 #endif
 }
@@ -532,6 +531,9 @@ Real CProprioceptiveFeatureVector::TrackRobotDisplacement(Real step, std::vector
 void CProprioceptiveFeatureVector::PrintFeatureDetails()
 {
     int CurrentStepNumber = (int) m_sSensoryData.m_rTime;
+
+    assert(m_unSumTimeStepsNbrsRange0to15  <=100u);
+    assert(m_unSumTimeStepsNbrsRange15to30 <=100u);
 
     std::cout << "Step: " << CurrentStepNumber << " TimeSteps_NbrsInRange0to15:  " << m_unSumTimeStepsNbrsRange0to15 <<
                  " TimeSteps_NbrsInRange15to30: " << m_unSumTimeStepsNbrsRange15to30 << " DistTravelled (Squared):  " << m_fEstimated_SquaredDist_LongTimeWindow <<

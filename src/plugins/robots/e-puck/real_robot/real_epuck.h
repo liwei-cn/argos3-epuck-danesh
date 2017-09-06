@@ -98,6 +98,15 @@ namespace argos {
       virtual ~CRealEPuck();
 
       /**
+       * Returns the random seed of the "argos" category of the random seed.
+       * @return the random seed of the "argos" category of the random seed.
+       * @see CRandom
+       */
+      inline UInt32 GetRandomSeed() const {
+         return unRandomSeed;
+      }
+
+      /**
        * Returns the system time on the robot in ms.
        */
       static UInt64 GetTime();
@@ -500,6 +509,11 @@ namespace argos {
        * The random number generator
        */
       CRandom::CRNG* m_pcRNG;
+
+      /**
+       * The seed of the random number generator
+       */
+      UInt32 unRandomSeed;
 
       /**
        * The range of the random numbers to be generated

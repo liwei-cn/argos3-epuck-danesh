@@ -334,6 +334,7 @@ CBayesianInferenceFeatureVector::BayesInference_ObservedRobots_FeatureVector::Ba
 
     /************************************************************************************/
     m_fEstimated_Dist_ShortTimeWindow = 0.0f; m_fEstimated_Dist_MediumTimeWindow = 0.0f; m_fEstimated_Dist_LongTimeWindow = 0.0f;
+    m_fMedianEstimated_Dist_MediumTimeWindow = 0.0f; m_fMedianEstimated_Dist_LongTimeWindow = 0.0f;
 
     vec_RobPos_ShortRangeTimeWindow.resize(owner.m_iShortTimeWindowLength);
     vec_RobPos_MediumRangeTimeWindow.resize(owner.m_iMediumTimeWindowLength);
@@ -464,7 +465,8 @@ void CBayesianInferenceFeatureVector::BayesInference_ObservedRobots_FeatureVecto
         }
 
         //m_pfFeatureValues[5] = m_fEstimated_Dist_LongTimeWindow >= (0.15f*(m_iLongTimeWindowLength * m_sRobotData.MaxLinearSpeed)) ? 1.0f : 0.0f; // using noisy measurements
-        m_pfFeatureValues[5] = median(list_Dist_LongRangeTimeWindow) >= (0.15f*(m_iLongTimeWindowLength * m_sRobotData.MaxLinearSpeed)) ? 1.0f : 0.0f; // using noisy measurements
+        m_fMedianEstimated_Dist_LongTimeWindow = median(list_Dist_LongRangeTimeWindow);
+        m_pfFeatureValues[5] = m_fMedianEstimated_Dist_LongTimeWindow >= (0.15f*(m_iLongTimeWindowLength * m_sRobotData.MaxLinearSpeed)) ? 1.0f : 0.0f; // using noisy measurements
 
         assert((owner.m_sSensoryData.m_rTime - (Real)u_TimeSinceLastObserved_DistMeasure) >= 0.0f); /*time since the robot was last observed */
 
@@ -489,7 +491,8 @@ void CBayesianInferenceFeatureVector::BayesInference_ObservedRobots_FeatureVecto
         }
 
         //Real f_MotorOutput      = fabs(average_angularacceleration) * (m_fEstimated_Dist_MediumTimeWindow / (m_iMediumTimeWindowLength * m_sRobotData.MaxLinearSpeed));
-        Real f_MotorOutput      = fabs(average_angularacceleration) * (median(list_Dist_MediumRangeTimeWindow) / (m_iMediumTimeWindowLength * m_sRobotData.MaxLinearSpeed));
+        m_fMedianEstimated_Dist_MediumTimeWindow = median(list_Dist_MediumRangeTimeWindow);
+        Real f_MotorOutput      = fabs(average_angularacceleration) * (m_fMedianEstimated_Dist_MediumTimeWindow / (m_iMediumTimeWindowLength * m_sRobotData.MaxLinearSpeed));
 
         /* we need to discretise the data. we assume that a motor interaction occurs if f_MotorOutput exceeds 10% of max motor output */
         unsigned un_MotorOutput = (f_MotorOutput >= 0.10f)? 1u : 0u;
@@ -715,24 +718,29 @@ void CBayesianInferenceFeatureVector::BayesInference_ObservedRobots_FeatureVecto
                                                                 vec_RobPos_ShortRangeTimeWindow, b_DataAvailable);
 
 #ifdef DEBUG_BAYESIANOBSERVED_FV_MESSAGES
-    if((int)owner.m_sSensoryData.m_rTime % 20 == 0)
-        std::cout << "Estimated distance for 1s " << m_fEstimated_Dist_ShortTimeWindow  << std::endl;
+        std::cout << "RobotId " << m_unRobotId << " Estimated distance for 1s " << m_fEstimated_Dist_ShortTimeWindow  << std::endl;
 #endif
 
     m_fEstimated_Dist_MediumTimeWindow = TrackRobotDisplacement(step, observedRobotId_1_Range, observedRobotId_1_Bearing, delta_orientation,
                                                                 vec_RobPos_MediumRangeTimeWindow, b_DataAvailable);
 
 #ifdef DEBUG_BAYESIANOBSERVED_FV_MESSAGES
-   if((int)owner.m_sSensoryData.m_rTime % 20 == 0)
-        std::cout << "Estimated distance for 5s " << m_fEstimated_Dist_MediumTimeWindow  << std::endl;
+        std::cout << "RobotId " << m_unRobotId << " Median estimated distance for 5s " <<  m_fMedianEstimated_Dist_MediumTimeWindow   << std::endl;
+        std::cout << "Medium list has values: ";
+        for (std::vector<Real>::iterator i = list_Dist_MediumRangeTimeWindow.begin(); i != list_Dist_MediumRangeTimeWindow.end(); ++i)
+            std::cout << *i << " ";
+        std::cout << std::endl;
 #endif
 
     m_fEstimated_Dist_LongTimeWindow   = TrackRobotDisplacement(step, observedRobotId_1_Range, observedRobotId_1_Bearing, delta_orientation,
                                                                 vec_RobPos_LongRangeTimeWindow, b_DataAvailable);
 
 #ifdef DEBUG_BAYESIANOBSERVED_FV_MESSAGES
-    if((int)owner.m_sSensoryData.m_rTime % 20 == 0)
-        std::cout << "Estimated distance for 10s " << m_fEstimated_Dist_LongTimeWindow  << std::endl  << std::endl;
+        std::cout << "RobotId " << m_unRobotId << " Median estimated distance for 10s " <<  m_fMedianEstimated_Dist_LongTimeWindow  << std::endl  << std::endl;
+        std::cout << "Large list has values: ";
+        for (std::vector<Real>::iterator i = list_Dist_LongRangeTimeWindow.begin(); i != list_Dist_LongRangeTimeWindow.end(); ++i)
+            std::cout << *i << " ";
+        std::cout << std::endl;
 #endif
 }
 

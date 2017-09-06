@@ -262,6 +262,7 @@ public:
         /************************************************************************************/
         /* Keeping track of neighbours at different time scales*/
         Real m_fEstimated_Dist_ShortTimeWindow, m_fEstimated_Dist_MediumTimeWindow, m_fEstimated_Dist_LongTimeWindow;
+        Real m_fMedianEstimated_Dist_MediumTimeWindow, m_fMedianEstimated_Dist_LongTimeWindow;
         std::vector<RobotRelativePosData> vec_RobPos_ShortRangeTimeWindow, vec_RobPos_MediumRangeTimeWindow, vec_RobPos_LongRangeTimeWindow;
 
         std::list<Real> list_NbrsInCloseProxm, list_NbrsInFarProxm;
