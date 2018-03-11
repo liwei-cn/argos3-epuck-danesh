@@ -1,7 +1,7 @@
   
-add_executable(epuck_hom_swarm
-epuck_hom_swarm/epuck_hom_swarm.h 
-epuck_hom_swarm/epuck_hom_swarm.cpp 
+add_executable(epuck_swarm
+epuck_swarm/epuck_swarm.h 
+epuck_swarm/epuck_swarm.cpp 
 behaviors/behavior.h 
 behaviors/behavior.cpp 
 behaviors/dispersebehavior.h 
@@ -30,4 +30,7 @@ include_directories(${CMAKE_SOURCE_DIR}/faultdetection/behaviors
 					${CMAKE_SOURCE_DIR}/faultdetection/fault_detection_model
 					${CMAKE_SOURCE_DIR}/faultdetection/feature_vector)
 
-target_link_libraries(epuck_hom_swarm argos3plugin_${ARGOS_BUILD_FOR}_epuck) 
+target_link_libraries(epuck_swarm argos3plugin_${ARGOS_BUILD_FOR}_epuck) 
+
+
+

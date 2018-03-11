@@ -189,11 +189,6 @@ public:
     CCI_EPuckBaseLEDsActuator* GetLEDsPtr() {return m_pcLEDs;}
 
     /**
-     * Execute general faults
-    */
-    virtual void RunGeneralFaults();
-
-    /**
      * Run one of the swarm experiments (Aggregation, Dispersion, Homing, Flocking)
     */
     virtual void RunHomogeneousSwarmExperiment();

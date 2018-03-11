@@ -925,7 +925,7 @@ void CRealEPuck::SetId(CCI_Controller& c_controller) {
 
         if((s==0) && (strcmp(ifa->ifa_name, "wlan0") == 0) && (ifa->ifa_addr->sa_family==AF_INET))
         {
-            c_controller.SetId(std::string(ipaddress).erase(0, 10));
+            c_controller.SetId(std::string(ipaddress).erase(0, 11));  //modified by wei
             id_found = true;
             break;
         }

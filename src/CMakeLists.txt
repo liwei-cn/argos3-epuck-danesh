@@ -46,3 +46,5 @@ set(CMAKE_CXX_FLAGS "-std=c++11")
 add_subdirectory(plugins)
 add_subdirectory(testing)
 add_subdirectory(faultdetection)
+add_subdirectory(demos)
+

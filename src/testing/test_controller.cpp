@@ -41,11 +41,11 @@ void CTestController::Init(TConfigurationNode& t_node)
     wheels_actuator = GetActuator<CCI_EPuckWheelsActuator>("epuck_wheels");
     base_leds_actuator = GetActuator<CCI_EPuckBaseLEDsActuator>("epuck_base_leds");
 
-    /*un_databuffersize = 1024; //max size of data packet received from tracking server.
+    un_databuffersize = 1024; //max size of data packet received from tracking server.
     pun_databuffer = new UInt8[un_databuffersize];
-    un_connectionstatus = ConnectTrackingServer(UDP);
+    un_connectionstatus = ConnectTrackingServer(TCP);
 
-    un_serveraddresslength = sizeof(struct sockaddr_in);*/
+    un_serveraddresslength = sizeof(struct sockaddr_in);
  }
 
 int CTestController::ConnectTrackingServer(int protocol)
@@ -65,9 +65,9 @@ int CTestController::ConnectTrackingServer(int protocol)
 
     if(protocol == TCP)
     {
-        server.sin_addr.s_addr = inet_addr("192.168.1.105"); //INADDR_ANY;
+        server.sin_addr.s_addr = inet_addr("144.32.145.229"); //INADDR_ANY;
         server.sin_family = AF_INET;
-        server.sin_port = htons(8888);
+        server.sin_port = htons(10021);
 
         //Connect to tracking server
         if (connect(socket_desc , (struct sockaddr *)&server , sizeof(server)) < 0)
@@ -171,7 +171,7 @@ void CTestController::ControlStep()
 
 //    wheels_actuator->SetLinearVelocity(left_wheel_speed, right_wheel_speed);
 
-    std::cout << "[Robot Id] " << this->GetId() << " => " << RobotIdStrToInt() << std::endl;
+//    std::cout << "[Robot Id] " << this->GetId() << " => " << RobotIdStrToInt() << std::endl;
 
     base_leds_actuator->SwitchLED(control_step % 8, true); // Turn one of the 8 base LEDs on
     base_leds_actuator->SwitchLED((control_step - 1) % 8, false); // Turn previous base LED off

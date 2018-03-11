@@ -1,0 +1,69 @@
+<?xml version="1.0" ?>
+
+<!-- *************************************************** -->
+<!-- * A fully commented XML is diffusion_1.xml. Refer * -->
+<!-- * to it to have full information about what       * -->
+<!-- * these options mean.                             * -->
+<!-- *************************************************** -->
+
+ <argos-configuration>
+
+  <!-- ************************* -->
+  <!-- * General configuration * -->
+  <!-- ************************* -->
+ <!-- length in seconds -->   <!--300 + 30 (random positioning at start) -->
+  <framework>
+        <experiment length="330"
+                    ticks_per_second="10"
+                    random_seed="555" />
+  </framework>
+
+
+  <!-- *************** -->
+  <!-- * Controllers * -->
+  <!-- *************** -->
+  <!-- time_between_robots_trans_behav is in seconds -->
+  <controllers>
+
+        <epuck_homswarm_controller id="epuck_homswarm_controller"
+                                 library="build_linux/faultdetection/libepuck_hom_swarm.so">
+                 <sensors>
+                         <epuck_proximity implementation="default" show_rays="false"/>
+                         <epuck_pseudo_range_and_bearing implementation="default" show_rays="false" noise_std_dev="0.01" range="150"/>
+                 </sensors>
+
+                 <actuators>
+                         <epuck_wheels implementation="default"/>
+                         <epuck_base_leds implementation="default" medium="leds"/>
+                 </actuators>
+                 <params>
+                        <experiment_run swarm_behavior="SWARM_AGGREGATION"
+                                        fault_behavior="FAULT_NONE"
+                                        id_faulty_robot="-1"
+                                        output_filename="filenamenotused"
+                                        behavior_transition_probability="-1" />
+                 </params>
+        </epuck_homswarm_controller>
+  </controllers>
+
+
+  <arena size="5,5,1" center="0,0,0.5">
+        <e-puck id="ep0">
+                 <body position="0,0,0" orientation="0,0,0"/>
+                 <controller config="test_controller" />
+        </e-puck>
+  </arena>
+
+  <physics_engines>
+        <dynamics2d id="dyn2d" />
+  </physics_engines>
+
+  <media>
+        <led id="leds"/>
+  </media>
+
+  <visualization>
+        <qt-opengl/>
+  </visualization>
+
+</argos-configuration>

@@ -8,7 +8,7 @@
 /****************************************/
 /****************************************/
 /* Include the controller definition */
-#include "epuck_hom_swarm.h"
+#include "epuck_swarm.h"
 
 /* Function definitions for XML parsing */
 #include <argos3/core/utility/configuration/argos_configuration.h>
@@ -270,10 +270,6 @@ void CEPuckHomSwarm::Init(TConfigurationNode& t_node)
 
     m_pFlockingBehavior = new CFlockingBehavior(m_sRobotDetails.iterations_per_second * 1.0f); // 5.0f
 
-    //if(this->GetId().compare("ep"+m_sExpRun.id_FaultyRobotInSwarm) == 0)
-    if(this->GetId().compare(m_sExpRun.id_FaultyRobotInSwarm) == 0)
-        b_damagedrobot = true;			//indicate this robot is faulty
-
 #ifdef DEBUG_EXP_MESSAGES
     std::cout << "Init function ended " << std::endl;
 #endif
@@ -437,61 +433,17 @@ void CEPuckHomSwarm::ControlStep()
     m_pcLEDs->BodyLED((int)m_fInternalRobotTimer % 2 == 1);
 
 
-    bool b_RunningGeneralFaults(false);
-    if(b_damagedrobot && (m_sExpRun.FBehavior == ExperimentToRun::FAULT_STRAIGHTLINE ||
-                          m_sExpRun.FBehavior == ExperimentToRun::FAULT_RANDOMWALK ||
-                          m_sExpRun.FBehavior == ExperimentToRun::FAULT_CIRCLE ||
-                          m_sExpRun.FBehavior == ExperimentToRun::FAULT_STOP))
-    {
-        b_RunningGeneralFaults = true;
-        RunGeneralFaults();
-    }
-
-    else if(m_sExpRun.SBehavior == ExperimentToRun::SWARM_AGGREGATION               ||
-            m_sExpRun.SBehavior == ExperimentToRun::SWARM_DISPERSION                ||
-            m_sExpRun.SBehavior == ExperimentToRun::SWARM_FLOCKING                  ||
-            m_sExpRun.SBehavior == ExperimentToRun::SWARM_HOMING                    ||
-            m_sExpRun.SBehavior == ExperimentToRun::SWARM_HOMING_MOVING_BEACON      ||
-            m_sExpRun.SBehavior == ExperimentToRun::SWARM_STOP                      ||
-            m_sExpRun.SBehavior == ExperimentToRun::SWARM_AGGREGATION_DISPERSION)
-        RunHomogeneousSwarmExperiment();
+   if(m_sExpRun.SBehavior == ExperimentToRun::SWARM_AGGREGATION               ||
+	  m_sExpRun.SBehavior == ExperimentToRun::SWARM_DISPERSION                ||
+	  m_sExpRun.SBehavior == ExperimentToRun::SWARM_FLOCKING                  ||
+	  m_sExpRun.SBehavior == ExperimentToRun::SWARM_HOMING                    ||
+      m_sExpRun.SBehavior == ExperimentToRun::SWARM_HOMING_MOVING_BEACON      ||
+	  m_sExpRun.SBehavior == ExperimentToRun::SWARM_STOP                      ||
+	  m_sExpRun.SBehavior == ExperimentToRun::SWARM_AGGREGATION_DISPERSION)
+   		RunHomogeneousSwarmExperiment();
 
 
-    if(!b_damagedrobot || b_RunningGeneralFaults || m_sExpRun.FBehavior == ExperimentToRun::FAULT_NONE)
-        CBehavior::m_sSensoryData.SetSensoryData(m_pcRNG, m_fInternalRobotTimer, GetIRSensorReadings(b_damagedrobot, m_sExpRun.FBehavior), GetRABSensorReadings(b_damagedrobot, m_sExpRun.FBehavior));  //no fault
-	//some fault
-    else
-    {
-        //m_pcLEDs->SetAllColors(CColor::RED);
-
-        if(m_sExpRun.FBehavior == ExperimentToRun::FAULT_PROXIMITYSENSORS_SETMIN)
-            CBehavior::m_sSensoryData.SetSensoryData(m_pcRNG, m_fInternalRobotTimer, GetIRSensorReadings(b_damagedrobot, m_sExpRun.FBehavior), GetRABSensorReadings(b_damagedrobot, m_sExpRun.FBehavior));
-        else if(m_sExpRun.FBehavior == ExperimentToRun::FAULT_PROXIMITYSENSORS_SETMAX)
-            CBehavior::m_sSensoryData.SetSensoryData(m_pcRNG, m_fInternalRobotTimer, GetIRSensorReadings(b_damagedrobot, m_sExpRun.FBehavior), GetRABSensorReadings(b_damagedrobot, m_sExpRun.FBehavior));
-        else if(m_sExpRun.FBehavior == ExperimentToRun::FAULT_PROXIMITYSENSORS_SETRANDOM)
-            CBehavior::m_sSensoryData.SetSensoryData(m_pcRNG, m_fInternalRobotTimer, GetIRSensorReadings(b_damagedrobot, m_sExpRun.FBehavior), GetRABSensorReadings(b_damagedrobot, m_sExpRun.FBehavior));
-        else if(m_sExpRun.FBehavior == ExperimentToRun::FAULT_PROXIMITYSENSORS_SETOFFSET)
-            CBehavior::m_sSensoryData.SetSensoryData(m_pcRNG, m_fInternalRobotTimer, GetIRSensorReadings(b_damagedrobot, m_sExpRun.FBehavior), GetRABSensorReadings(b_damagedrobot, m_sExpRun.FBehavior));
-
-        else if(m_sExpRun.FBehavior == ExperimentToRun::FAULT_RABSENSOR_SETOFFSET)
-            CBehavior::m_sSensoryData.SetSensoryData(m_pcRNG, m_fInternalRobotTimer, GetIRSensorReadings(b_damagedrobot, m_sExpRun.FBehavior), GetRABSensorReadings(b_damagedrobot, m_sExpRun.FBehavior));
-
-        else if(m_sExpRun.FBehavior == ExperimentToRun::FAULT_ACTUATOR_LWHEEL_SETZERO)
-        {
-            // does not affect the sensors - they stay the same
-            CBehavior::m_sSensoryData.SetSensoryData(m_pcRNG, m_fInternalRobotTimer, GetIRSensorReadings(b_damagedrobot, m_sExpRun.FBehavior), GetRABSensorReadings(b_damagedrobot, m_sExpRun.FBehavior));
-        }
-        else if(m_sExpRun.FBehavior == ExperimentToRun::FAULT_ACTUATOR_RWHEEL_SETZERO)
-        {
-            // does not affect the sensors - they stay the same
-            CBehavior::m_sSensoryData.SetSensoryData(m_pcRNG, m_fInternalRobotTimer, GetIRSensorReadings(b_damagedrobot, m_sExpRun.FBehavior), GetRABSensorReadings(b_damagedrobot, m_sExpRun.FBehavior));
-        }
-        else if(m_sExpRun.FBehavior == ExperimentToRun::FAULT_ACTUATOR_BWHEELS_SETZERO)
-        {
-            // does not affect the sensors - they stay the same
-            CBehavior::m_sSensoryData.SetSensoryData(m_pcRNG, m_fInternalRobotTimer, GetIRSensorReadings(b_damagedrobot, m_sExpRun.FBehavior), GetRABSensorReadings(b_damagedrobot, m_sExpRun.FBehavior));
-        }
-    }
+	CBehavior::m_sSensoryData.SetSensoryData(m_pcRNG, m_fInternalRobotTimer, GetIRSensorReadings(false, m_sExpRun.FBehavior), GetRABSensorReadings(false, m_sExpRun.FBehavior));  //no fault
 
     /*For flocking behavior - to compute relative velocity*/
     //CBehavior::m_sSensoryData.SetWheelSpeedsFromEncoders(m_pcWheelsEncoder->GetReading().VelocityLeftWheel, m_pcWheelsEncoder->GetReading().VelocityRightWheel);
@@ -520,12 +472,10 @@ void CEPuckHomSwarm::ControlStep()
             bControlTaken = (*i)->TakeControl();
             if (bControlTaken)
             {
-                /*if(b_damagedrobot)
-                      (*i)->PrintBehaviorIdentity();*/
 #ifdef DEBUG_EXP_MESSAGES
                 (*i)->PrintBehaviorIdentity();
 #endif
-                (*i)->Action(leftSpeed, rightSpeed);
+                (*i)->Action(leftSpeed, rightSpeed);		//change the speed of the robot based on the sensor reading and controller?
             }
         } else
             (*i)->Suppress();
@@ -560,24 +510,11 @@ void CEPuckHomSwarm::ControlStep()
         rightSpeed = rightSpeed/2.0f;
     }
 
-
-    if(b_damagedrobot && m_sExpRun.FBehavior == ExperimentToRun::FAULT_ACTUATOR_LWHEEL_SETZERO)
-        leftSpeed  = 0.0f;
-
-    if(b_damagedrobot && m_sExpRun.FBehavior == ExperimentToRun::FAULT_ACTUATOR_RWHEEL_SETZERO)
-        rightSpeed = 0.0f;
-
-    if(b_damagedrobot && m_sExpRun.FBehavior == ExperimentToRun::FAULT_ACTUATOR_BWHEELS_SETZERO)
-    {
-        leftSpeed = 0.0f;
-        rightSpeed = 0.0f;
-    }
-
-    //for(CCI_EPuckProximitySensor::SReading reading : GetIRSensorReadings(b_damagedrobot, m_sExpRun.FBehavior))
+    //for(CCI_EPuckProximitySensor::SReading reading : GetIRSensorReadings(false, m_sExpRun.FBehavior))
     //    printf("%.2f, ", reading.Value);
 
 	/*maybe because m_sSensoryData has already obstained the data from the tracking server, this read return empty data as the tracking server only send the data once??*/
-    CCI_EPuckPseudoRangeAndBearingSensor::TPackets rabsensor_readings = GetRABSensorReadings(b_damagedrobot, m_sExpRun.FBehavior);
+    CCI_EPuckPseudoRangeAndBearingSensor::TPackets rabsensor_readings = GetRABSensorReadings(false, m_sExpRun.FBehavior);
 #ifdef DEBUG_EXP_MESSAGES
     std::cout << "Printing RAB Packets start " << std::endl;
     for(CCI_EPuckPseudoRangeAndBearingSensor::SReceivedPacket* m_pRABPacket : rabsensor_readings)
@@ -587,7 +524,7 @@ void CEPuckHomSwarm::ControlStep()
 #endif
 
     //if(!(leftSpeed == leftSpeed_prev) && (rightSpeed == rightSpeed_prev))
-    m_pcWheels->SetLinearVelocity(leftSpeed, rightSpeed); // in cm/s
+    m_pcWheels->SetLinearVelocity(leftSpeed, rightSpeed); // in cm/s  //set the speed of the robot by writing into the actuactor
 
 #ifdef DEBUG_EXP_MESSAGES
     std::cout << "LS:  " << leftSpeed << " RS:  " << rightSpeed << std::endl;
@@ -616,35 +553,6 @@ void CEPuckHomSwarm::ControlStep()
 #endif
 
     m_fInternalRobotTimer+=1.0f;
-}
-
-/****************************************/
-/****************************************/
-
-void CEPuckHomSwarm::RunGeneralFaults()
-{
-    //m_pcLEDs->SetAllColors(CColor::RED);
-
-    m_vecBehaviors.clear();
-    if(m_sExpRun.FBehavior == ExperimentToRun::FAULT_STRAIGHTLINE)
-    {
-        CRandomWalkBehavior* pcStraightLineBehavior = new CRandomWalkBehavior(0.0f);
-        m_vecBehaviors.push_back(pcStraightLineBehavior);
-    }
-    else if (m_sExpRun.FBehavior == ExperimentToRun::FAULT_RANDOMWALK)
-    {
-        CRandomWalkBehavior* pcRandomWalkBehavior = new CRandomWalkBehavior(0.0017f);  // 0.05f
-        m_vecBehaviors.push_back(pcRandomWalkBehavior);
-    }
-
-    else if (m_sExpRun.FBehavior == ExperimentToRun::FAULT_CIRCLE)
-    {
-        CCircleBehavior* pcCircleBehavior = new CCircleBehavior();
-        m_vecBehaviors.push_back(pcCircleBehavior);
-    }
-
-    else //m_sExpRun.FBehavior == ExperimentToRun::FAULT_STOP
-    {}
 }
 
 /****************************************/
