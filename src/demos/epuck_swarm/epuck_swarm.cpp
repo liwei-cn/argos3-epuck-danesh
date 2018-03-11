@@ -40,16 +40,12 @@
 CBehavior::SensoryData CBehavior::m_sSensoryData;
 CBehavior::RobotData CBehavior::m_sRobotData;
 
-CProprioceptiveFeatureVector::RobotData CProprioceptiveFeatureVector::m_sRobotData;
-CBayesianInferenceFeatureVector::RobotData CBayesianInferenceFeatureVector::m_sRobotData;
 
 /****************************************/
 /****************************************/
 
 CEPuckHomSwarm::ExperimentToRun::ExperimentToRun() :
-    SBehavior(SWARM_AGGREGATION),
-    FBehavior(FAULT_NONE),
-    id_FaultyRobotInSwarm("-1")
+    SBehavior(SWARM_AGGREGATION)
 {
 }
 
@@ -61,13 +57,11 @@ void CEPuckHomSwarm::ExperimentToRun::Init(TConfigurationNode& t_node)
 #ifdef DEBUG_EXP_MESSAGES
     std::cout << "ExperimentToRun Init function started " << std::endl;
 #endif
-    std::string errorbehav; std::string str_behavior_transition_probability;
+    std::string str_behavior_transition_probability;
 
     try
     {
         GetNodeAttribute(t_node, "swarm_behavior", swarmbehav);
-        GetNodeAttribute(t_node, "fault_behavior", errorbehav);
-        GetNodeAttribute(t_node, "id_faulty_robot", id_FaultyRobotInSwarm);
         GetNodeAttribute(t_node, "output_filename", m_strOutput); // not used anymore
 
         GetNodeAttribute(t_node, "behavior_transition_probability", str_behavior_transition_probability);
@@ -118,7 +112,7 @@ void CEPuckHomSwarm::ExperimentToRun::Init(TConfigurationNode& t_node)
         m_strOutput = RobotId + "_" + swarmbehav + "_" + str_behavior_transition_probability + "_" + convert.str() + ".fvlog";
     }
     else
-        m_strOutput = RobotId + "_" + swarmbehav + "_" + errorbehav + "_" + convert.str() + ".fvlog";
+        m_strOutput = RobotId + "_" + swarmbehav + "_" + convert.str() + ".fvlog";
 
 
     /* Open the file, erasing its contents */
@@ -148,40 +142,6 @@ void CEPuckHomSwarm::ExperimentToRun::Init(TConfigurationNode& t_node)
     else
         THROW_ARGOSEXCEPTION("Invalid swarm behavior");
 
-
-    if (errorbehav.compare("FAULT_NONE") == 0)
-        FBehavior = FAULT_NONE;
-    else if  (errorbehav.compare("FAULT_STRAIGHTLINE") == 0)
-        FBehavior = FAULT_STRAIGHTLINE;
-    else if  (errorbehav.compare("FAULT_RANDOMWALK") == 0)
-        FBehavior = FAULT_RANDOMWALK;
-    else if  (errorbehav.compare("FAULT_CIRCLE") == 0)
-        FBehavior = FAULT_CIRCLE;
-    else if  (errorbehav.compare("FAULT_STOP") == 0)
-        FBehavior = FAULT_STOP;
-
-    else if  (errorbehav.compare("FAULT_PROXIMITYSENSORS_SETMIN") == 0)
-        FBehavior = FAULT_PROXIMITYSENSORS_SETMIN;
-    else if  (errorbehav.compare("FAULT_PROXIMITYSENSORS_SETMAX") == 0)
-        FBehavior = FAULT_PROXIMITYSENSORS_SETMAX;
-    else if  (errorbehav.compare("FAULT_PROXIMITYSENSORS_SETRANDOM") == 0)
-        FBehavior = FAULT_PROXIMITYSENSORS_SETRANDOM;
-    else if  (errorbehav.compare("FAULT_PROXIMITYSENSORS_SETOFFSET") == 0)
-        FBehavior = FAULT_PROXIMITYSENSORS_SETOFFSET;
-
-
-    else if  (errorbehav.compare("FAULT_RABSENSOR_SETOFFSET") == 0)
-        FBehavior = FAULT_RABSENSOR_SETOFFSET;
-
-    else if  (errorbehav.compare("FAULT_ACTUATOR_LWHEEL_SETZERO") == 0)
-        FBehavior = FAULT_ACTUATOR_LWHEEL_SETZERO;
-    else if  (errorbehav.compare("FAULT_ACTUATOR_RWHEEL_SETZERO") == 0)
-        FBehavior = FAULT_ACTUATOR_RWHEEL_SETZERO;
-    else if  (errorbehav.compare("FAULT_ACTUATOR_BWHEELS_SETZERO") == 0)
-        FBehavior = FAULT_ACTUATOR_BWHEELS_SETZERO;
-
-    else
-        THROW_ARGOSEXCEPTION("Invalid fault behavior");
 #ifdef DEBUG_EXP_MESSAGES
     std::cout << "ExperimentToRun Init function ended" << std::endl;
 #endif
@@ -206,9 +166,6 @@ CEPuckHomSwarm::CEPuckHomSwarm() :
     b_randompositionrobot(true),
     m_bRobotSwitchedBehavior(false)
 {
-    listFVsSensed.clear();
-    listMapFVsToRobotIds.clear();
-    listMapFVsToRobotIds_relay.clear();
 
     m_uRobotFV = 9999; // for debugging purposes
 
@@ -289,30 +246,7 @@ void CEPuckHomSwarm::CopyRobotDetails(RobotDetails& robdetails)
 
     CBehavior::m_sRobotData.m_cNoTurnOnAngleThreshold   = robdetails.m_cNoTurnOnAngleThreshold;
     CBehavior::m_sRobotData.m_cSoftTurnOnAngleThreshold = robdetails.m_cSoftTurnOnAngleThreshold;
-
-
-    CProprioceptiveFeatureVector::m_sRobotData.MaxLinearSpeed           = robdetails.MaxLinearSpeed; //cm/controlcycle
-    CProprioceptiveFeatureVector::m_sRobotData.MaxLinearAcceleration    = robdetails.MaxLinearAcceleration; //cm/controlcycle/controlcycle
-    CProprioceptiveFeatureVector::m_sRobotData.HALF_INTERWHEEL_DISTANCE = robdetails.HALF_INTERWHEEL_DISTANCE; // m
-    CProprioceptiveFeatureVector::m_sRobotData.INTERWHEEL_DISTANCE      = robdetails.INTERWHEEL_DISTANCE; // m
-    CProprioceptiveFeatureVector::m_sRobotData.MaxAngularSpeed          = robdetails.MaxAngularSpeed; // rad/controlcycle
-    CProprioceptiveFeatureVector::m_sRobotData.MaxAngularAcceleration   = robdetails.MaxAngularAcceleration; // rad/controlcycle/controlcycle
-    CProprioceptiveFeatureVector::m_sRobotData.iterations_per_second    = robdetails.iterations_per_second;
-    CProprioceptiveFeatureVector::m_sRobotData.seconds_per_iterations   = robdetails.seconds_per_iterations;
-    CProprioceptiveFeatureVector::m_sRobotData.WHEEL_RADIUS             = robdetails.WHEEL_RADIUS;
-
-
-    CBayesianInferenceFeatureVector::m_sRobotData.MaxLinearSpeed           = robdetails.MaxLinearSpeed; //cm/controlcycle
-    CBayesianInferenceFeatureVector::m_sRobotData.MaxLinearAcceleration    = robdetails.MaxLinearAcceleration; //cm/controlcycle/controlcycle
-    CBayesianInferenceFeatureVector::m_sRobotData.HALF_INTERWHEEL_DISTANCE = robdetails.HALF_INTERWHEEL_DISTANCE; // m
-    CBayesianInferenceFeatureVector::m_sRobotData.INTERWHEEL_DISTANCE      = robdetails.INTERWHEEL_DISTANCE; // m
-    CBayesianInferenceFeatureVector::m_sRobotData.MaxAngularSpeed          = robdetails.MaxAngularSpeed; // rad/controlcycle
-    CBayesianInferenceFeatureVector::m_sRobotData.MaxAngularAcceleration   = robdetails.MaxAngularAcceleration; // rad/controlcycle/controlcycle
-    CBayesianInferenceFeatureVector::m_sRobotData.iterations_per_second    = robdetails.iterations_per_second;
-    CBayesianInferenceFeatureVector::m_sRobotData.seconds_per_iterations   = robdetails.seconds_per_iterations;
-    CBayesianInferenceFeatureVector::m_sRobotData.WHEEL_RADIUS             = robdetails.WHEEL_RADIUS;
-
-    CBayesianInferenceFeatureVector::m_sRobotData.SetLengthOdometryTimeWindows();
+	
 }
 
 /****************************************/
@@ -336,7 +270,7 @@ void CEPuckHomSwarm::ControlStep()
         CRandomWalkBehavior* pcRandomWalkBehavior = new CRandomWalkBehavior(0.05f); //0.0017f
         m_vecBehaviors.push_back(pcRandomWalkBehavior);
 
-        CBehavior::m_sSensoryData.SetSensoryData(m_pcRNG, m_fInternalRobotTimer, GetIRSensorReadings(false, m_sExpRun.FBehavior), GetRABSensorReadings(false, m_sExpRun.FBehavior));
+        CBehavior::m_sSensoryData.SetSensoryData(m_pcRNG, m_fInternalRobotTimer, GetIRSensorReadings(), GetRABSensorReadings());
 
         leftSpeed_prev = leftSpeed; rightSpeed_prev = rightSpeed;
         leftSpeed = 0.0; rightSpeed = 0.0f;
@@ -443,7 +377,7 @@ void CEPuckHomSwarm::ControlStep()
    		RunHomogeneousSwarmExperiment();
 
 
-	CBehavior::m_sSensoryData.SetSensoryData(m_pcRNG, m_fInternalRobotTimer, GetIRSensorReadings(false, m_sExpRun.FBehavior), GetRABSensorReadings(false, m_sExpRun.FBehavior));  //no fault
+	CBehavior::m_sSensoryData.SetSensoryData(m_pcRNG, m_fInternalRobotTimer, GetIRSensorReadings(), GetRABSensorReadings());  //no fault
 
     /*For flocking behavior - to compute relative velocity*/
     //CBehavior::m_sSensoryData.SetWheelSpeedsFromEncoders(m_pcWheelsEncoder->GetReading().VelocityLeftWheel, m_pcWheelsEncoder->GetReading().VelocityRightWheel);
@@ -482,19 +416,19 @@ void CEPuckHomSwarm::ControlStep()
     }
 
 
-    if(GetIRSensorReadings(false, m_sExpRun.FBehavior)[0].Value > 0.4f ||
-       GetIRSensorReadings(false, m_sExpRun.FBehavior)[1].Value > 0.4f ||
-       GetIRSensorReadings(false, m_sExpRun.FBehavior)[2].Value > 0.4f ||
-       GetIRSensorReadings(false, m_sExpRun.FBehavior)[3].Value > 0.4f ||
-       GetIRSensorReadings(false, m_sExpRun.FBehavior)[4].Value > 0.4f ||
-       GetIRSensorReadings(false, m_sExpRun.FBehavior)[5].Value > 0.4f ||
-       GetIRSensorReadings(false, m_sExpRun.FBehavior)[6].Value > 0.4f ||
-       GetIRSensorReadings(false, m_sExpRun.FBehavior)[7].Value > 0.4f)
+    if(GetIRSensorReadings()[0].Value > 0.4f ||
+       GetIRSensorReadings()[1].Value > 0.4f ||
+       GetIRSensorReadings()[2].Value > 0.4f ||
+       GetIRSensorReadings()[3].Value > 0.4f ||
+       GetIRSensorReadings()[4].Value > 0.4f ||
+       GetIRSensorReadings()[5].Value > 0.4f ||
+       GetIRSensorReadings()[6].Value > 0.4f ||
+       GetIRSensorReadings()[7].Value > 0.4f)
         u_num_consequtivecollisions++;
     else
         u_num_consequtivecollisions = 0u;
 
-    for(CCI_EPuckProximitySensor::SReading reading : GetIRSensorReadings(false, m_sExpRun.FBehavior))
+    for(CCI_EPuckProximitySensor::SReading reading : GetIRSensorReadings())
         printf("%.2f, ", reading.Value);
 
 
@@ -514,7 +448,7 @@ void CEPuckHomSwarm::ControlStep()
     //    printf("%.2f, ", reading.Value);
 
 	/*maybe because m_sSensoryData has already obstained the data from the tracking server, this read return empty data as the tracking server only send the data once??*/
-    CCI_EPuckPseudoRangeAndBearingSensor::TPackets rabsensor_readings = GetRABSensorReadings(false, m_sExpRun.FBehavior);
+    CCI_EPuckPseudoRangeAndBearingSensor::TPackets rabsensor_readings = GetRABSensorReadings();
 #ifdef DEBUG_EXP_MESSAGES
     std::cout << "Printing RAB Packets start " << std::endl;
     for(CCI_EPuckPseudoRangeAndBearingSensor::SReceivedPacket* m_pRABPacket : rabsensor_readings)
@@ -537,20 +471,6 @@ void CEPuckHomSwarm::ControlStep()
     leftSpeed_prev  += m_pcRNG->Uniform(CRange<Real>(-0.1f, 0.1f));
     rightSpeed_prev += m_pcRNG->Uniform(CRange<Real>(-0.1f, 0.1f));
     /************************************************************************************/
-
-#ifdef DEBUG_EXP_MESSAGES
-    std::cout << "SenseCommunicateDetect-step start " << std::endl;
-#endif
-    SenseCommunicateDetect(m_sExpRun.m_cOutput,
-                           RobotIdStrToInt(), leftSpeed_prev, rightSpeed_prev,
-                           m_fInternalRobotTimer, rabsensor_readings,
-                           listMapFVsToRobotIds, listMapFVsToRobotIds_relay, listFVsSensed,
-                           m_cProprioceptiveFeatureVector, m_cBayesianInferredFeatureVector, m_pcRNG_FVs, m_uRobotFV, m_sExpRun.swarmbehav, beaconrobots_ids);
-
-#ifdef DEBUG_EXP_MESSAGES
-    std::cout << "SenseCommunicateDetect-step end " << std::endl;
-    std::cout << "Control-step " << m_fInternalRobotTimer << " end " << std::endl << std::endl;
-#endif
 
     m_fInternalRobotTimer+=1.0f;
 }
