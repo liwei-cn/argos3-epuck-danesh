@@ -89,7 +89,7 @@ void CEPuckHomSwarm::ExperimentToRun::Init(TConfigurationNode& t_node)
 
         if((s==0) && (strcmp(ifa->ifa_name, "wlan0") == 0) && (ifa->ifa_addr->sa_family==AF_INET))
         {
-            RobotId = (std::string(ipaddress).erase(0, 11));  //changed from 10 to 11 by wei
+            RobotId = (std::string(ipaddress).erase(0, 11));  //the ip address has 11 numbers
             id_found = true;
             break;
         }
