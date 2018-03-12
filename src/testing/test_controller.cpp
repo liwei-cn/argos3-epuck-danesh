@@ -40,12 +40,13 @@ void CTestController::Init(TConfigurationNode& t_node)
     // Actuators
     wheels_actuator = GetActuator<CCI_EPuckWheelsActuator>("epuck_wheels");
     base_leds_actuator = GetActuator<CCI_EPuckBaseLEDsActuator>("epuck_base_leds");
-
+	/*
     un_databuffersize = 1024; //max size of data packet received from tracking server.
     pun_databuffer = new UInt8[un_databuffersize];
     un_connectionstatus = ConnectTrackingServer(TCP);
 
     un_serveraddresslength = sizeof(struct sockaddr_in);
+	*/
  }
 
 int CTestController::ConnectTrackingServer(int protocol)

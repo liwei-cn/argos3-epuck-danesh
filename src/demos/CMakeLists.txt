@@ -16,9 +16,11 @@ behaviors/flockingbehavior.h
 behaviors/flockingbehavior.cpp 
 behaviors/circlebehavior.h 
 behaviors/circlebehavior.cpp 
+behaviors/omega_algorithm.h 
+behaviors/omega_algorithm.cpp 
 ../plugins/robots/e-puck/real_robot/real_epuck_main.cpp)
 
-include_directories(${CMAKE_SOURCE_DIR}/faultdetection/behaviors
+include_directories(${CMAKE_SOURCE_DIR}/demos/behaviors
 					)
 
 target_link_libraries(epuck_swarm argos3plugin_${ARGOS_BUILD_FOR}_epuck) 

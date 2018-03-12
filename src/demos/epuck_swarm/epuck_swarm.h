@@ -28,6 +28,9 @@
 /* Definition of the pseudo range and bearing sensor */
 #include <argos3/plugins/robots/e-puck/control_interface/ci_epuck_pseudo_range_and_bearing_sensor.h>
 
+/* Definition of the e-puck light sensor */
+#include <argos3/plugins/robots/e-puck/control_interface/ci_epuck_light_sensor.h>
+
 /* Definition of the differential steering actuator */
 #include <argos3/plugins/robots/e-puck/control_interface/ci_epuck_wheels_actuator.h>
 
@@ -48,6 +51,7 @@
 #include "homingtofoodbeaconbehavior.h"
 #include "circlebehavior.h"
 #include "flockingbehavior.h"
+#include "omega_algorithm.h"
 
 /****************************************/
 /****************************************/
@@ -71,7 +75,8 @@ public:
             SWARM_FLOCKING,
             SWARM_STOP,
             SWARM_NONE,
-            SWARM_AGGREGATION_DISPERSION
+            SWARM_AGGREGATION_DISPERSION,
+			SWARM_OMEGA_ALGORITHM
         };
         enum SwarmBehavior SBehavior;
 
@@ -176,9 +181,6 @@ public:
 
 private:
 
-	/*
-		if no fault, return the real value
-	*/
     CCI_EPuckProximitySensor::TReadings GetIRSensorReadings()
     {
         CCI_EPuckProximitySensor::TReadings sensor_readings = m_pcProximity->GetReadings();
@@ -196,12 +198,20 @@ private:
 
         return sensor_readings;
     }
+	
+	CCI_EPuckLightSensor::TReadings GetLightSensorReadings() 
+	{
+		CCI_EPuckLightSensor::TReadings sensor_readings = m_pcLight->GetReadings();
+		
+		return sensor_readings;
+	}
 
 private:
 
     // Sensors
     CCI_EPuckProximitySensor* m_pcProximity;
     CCI_EPuckPseudoRangeAndBearingSensor* m_pcRABS;
+	CCI_EPuckLightSensor* m_pcLight;
 
     // Actuators
     CCI_EPuckWheelsActuator* m_pcWheels;

@@ -14,6 +14,7 @@
 
 #include <argos3/plugins/robots/e-puck/control_interface/ci_epuck_proximity_sensor.h>
 #include <argos3/plugins/robots/e-puck/control_interface/ci_epuck_pseudo_range_and_bearing_sensor.h>
+#include <argos3/plugins/robots/e-puck/control_interface/ci_epuck_light_sensor.h>
 
 /******************************************************************************/
 /******************************************************************************/
@@ -48,6 +49,7 @@ public:
     virtual void SimulationStep() = 0;
 
     virtual bool TakeControl() = 0;
+	virtual bool TakeControl(Real m_fInternalRobotTimer) {};
     virtual void Suppress();
     virtual void Action(Real &fLeftWheelSpeed, Real &fRightWheelSpeed);
 
@@ -74,15 +76,17 @@ public:
 
        CCI_EPuckProximitySensor::TReadings m_ProximitySensorData;
        CCI_EPuckPseudoRangeAndBearingSensor::TPackets  m_RABSensorData;
+	   CCI_EPuckLightSensor::TReadings m_LightSensorData;
 
        Real f_LeftWheelSpeed, f_RightWheelSpeed;
 
-       void SetSensoryData(CRandom::CRNG* rng, Real Time, CCI_EPuckProximitySensor::TReadings proximity, CCI_EPuckPseudoRangeAndBearingSensor::TPackets rab)
+       void SetSensoryData(CRandom::CRNG* rng, Real Time, CCI_EPuckProximitySensor::TReadings proximity, CCI_EPuckPseudoRangeAndBearingSensor::TPackets rab, CCI_EPuckLightSensor::TReadings light) 
        {
            m_pcRNG = rng;
            m_rTime = Time;
            m_ProximitySensorData = proximity;
            m_RABSensorData = rab;
+		   m_LightSensorData = light;
        }
 
        void SetWheelSpeedsFromEncoders(Real LeftWheelSpeed, Real RightWheelSpeed)

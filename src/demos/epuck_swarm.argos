@@ -29,7 +29,8 @@
                                  library="build_linux/demos/libepuck_hom_swarm.so">
                  <sensors>
                          <epuck_proximity implementation="default" show_rays="false"/>
-                         <epuck_pseudo_range_and_bearing implementation="default" show_rays="false" noise_std_dev="0.01" range="150"/>
+                         <epuck_pseudo_range_and_bearing implementation="default" show_rays="false" noise_std_dev="0.01" range="100"/>
+						 <epuck_light implementation="default" show_rays="false"/>
                  </sensors>
 
                  <actuators>
@@ -37,7 +38,7 @@
                          <epuck_base_leds implementation="default" medium="leds"/>
                  </actuators>
                  <params>
-                        <experiment_run swarm_behavior="SWARM_AGGREGATION"
+                        <experiment_run swarm_behavior="SWARM_OMEGA_ALGORITHM"
                                         fault_behavior="FAULT_NONE"
                                         id_faulty_robot="-1"
                                         output_filename="filenamenotused"

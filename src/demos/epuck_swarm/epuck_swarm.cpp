@@ -139,6 +139,8 @@ void CEPuckHomSwarm::ExperimentToRun::Init(TConfigurationNode& t_node)
         SBehavior = SWARM_AGGREGATION_DISPERSION;
         assert(behavior_transition_probability >= 0.0f && behavior_transition_probability <= 1.0f);
     }
+	else if (swarmbehav.compare("SWARM_OMEGA_ALGORITHM") == 0)
+        SBehavior = SWARM_OMEGA_ALGORITHM;
     else
         THROW_ARGOSEXCEPTION("Invalid swarm behavior");
 
@@ -202,6 +204,7 @@ void CEPuckHomSwarm::Init(TConfigurationNode& t_node)
        */
         m_pcProximity     = GetSensor  <CCI_EPuckProximitySensor>("epuck_proximity");
         m_pcRABS          = GetSensor  <CCI_EPuckPseudoRangeAndBearingSensor>("epuck_pseudo_range_and_bearing");
+		m_pcLight 	 	  = GetSensor<CCI_EPuckLightSensor>("epuck_light");   //remember to add it; otherwise segment fault
 
         m_pcWheels        = GetActuator<CCI_EPuckWheelsActuator>("epuck_wheels");
         m_pcLEDs          = GetActuator<CCI_EPuckBaseLEDsActuator>("epuck_base_leds");
@@ -270,7 +273,7 @@ void CEPuckHomSwarm::ControlStep()
         CRandomWalkBehavior* pcRandomWalkBehavior = new CRandomWalkBehavior(0.05f); //0.0017f
         m_vecBehaviors.push_back(pcRandomWalkBehavior);
 
-        CBehavior::m_sSensoryData.SetSensoryData(m_pcRNG, m_fInternalRobotTimer, GetIRSensorReadings(), GetRABSensorReadings());
+        CBehavior::m_sSensoryData.SetSensoryData(m_pcRNG, m_fInternalRobotTimer, GetIRSensorReadings(), GetRABSensorReadings(), GetLightSensorReadings());  
 
         leftSpeed_prev = leftSpeed; rightSpeed_prev = rightSpeed;
         leftSpeed = 0.0; rightSpeed = 0.0f;
@@ -295,12 +298,12 @@ void CEPuckHomSwarm::ControlStep()
         m_fInternalRobotTimer+=1.0f;
 
 
-        if(m_fInternalRobotTimer == 299) // Random positioning for 10s
+        if(m_fInternalRobotTimer == 9) // Random positioning for 1s
         {
             m_pcWheels->SetLinearVelocity(0.0f, 0.0f);
         }
 
-        if(m_fInternalRobotTimer == 300) // Random positioning for 10s
+        if(m_fInternalRobotTimer == 10) // Random positioning for 1s
         {
             m_pcWheels->SetLinearVelocity(0.0f, 0.0f);
 
@@ -373,11 +376,12 @@ void CEPuckHomSwarm::ControlStep()
 	  m_sExpRun.SBehavior == ExperimentToRun::SWARM_HOMING                    ||
       m_sExpRun.SBehavior == ExperimentToRun::SWARM_HOMING_MOVING_BEACON      ||
 	  m_sExpRun.SBehavior == ExperimentToRun::SWARM_STOP                      ||
-	  m_sExpRun.SBehavior == ExperimentToRun::SWARM_AGGREGATION_DISPERSION)
+	  m_sExpRun.SBehavior == ExperimentToRun::SWARM_AGGREGATION_DISPERSION    ||
+	  m_sExpRun.SBehavior == ExperimentToRun::SWARM_OMEGA_ALGORITHM)
    		RunHomogeneousSwarmExperiment();
 
 
-	CBehavior::m_sSensoryData.SetSensoryData(m_pcRNG, m_fInternalRobotTimer, GetIRSensorReadings(), GetRABSensorReadings());  //no fault
+	CBehavior::m_sSensoryData.SetSensoryData(m_pcRNG, m_fInternalRobotTimer, GetIRSensorReadings(), GetRABSensorReadings(), GetLightSensorReadings());  //no fault 
 
     /*For flocking behavior - to compute relative velocity*/
     //CBehavior::m_sSensoryData.SetWheelSpeedsFromEncoders(m_pcWheelsEncoder->GetReading().VelocityLeftWheel, m_pcWheelsEncoder->GetReading().VelocityRightWheel);
@@ -403,13 +407,22 @@ void CEPuckHomSwarm::ControlStep()
     {
         if (!bControlTaken)
         {
-            bControlTaken = (*i)->TakeControl();
-            if (bControlTaken)
+            
+			if (m_sExpRun.SBehavior == ExperimentToRun::SWARM_OMEGA_ALGORITHM) 
+			{
+				bControlTaken = (*i)->TakeControl(m_fInternalRobotTimer);   //modified specifically for omega algorithm
+			}
+			else 
+			{
+				bControlTaken = (*i)->TakeControl();
+			}
+			
+			if (bControlTaken)
             {
 #ifdef DEBUG_EXP_MESSAGES
                 (*i)->PrintBehaviorIdentity();
 #endif
-                (*i)->Action(leftSpeed, rightSpeed);		//change the speed of the robot based on the sensor reading and controller?
+                (*i)->Action(leftSpeed, rightSpeed);		//change the speed of the robot based on the sensor reading and controller
             }
         } else
             (*i)->Suppress();
@@ -457,6 +470,15 @@ void CEPuckHomSwarm::ControlStep()
     std::cout << "Printing RAB Packets end " << std::endl;
 #endif
 
+	printf("[LIGHT]\t\t");
+
+    const CCI_EPuckLightSensor::TReadings& light_sensor_readings = m_pcLight->GetReadings();
+
+    for(CCI_EPuckLightSensor::SReading reading: light_sensor_readings)
+        printf("%.2f, ", reading.Value);
+
+    printf("\n");
+	
     //if(!(leftSpeed == leftSpeed_prev) && (rightSpeed == rightSpeed_prev))
     m_pcWheels->SetLinearVelocity(leftSpeed, rightSpeed); // in cm/s  //set the speed of the robot by writing into the actuactor
 
@@ -568,6 +590,12 @@ void CEPuckHomSwarm::RunHomogeneousSwarmExperiment()
     {
     }
 
+    else if(m_sExpRun.SBehavior == ExperimentToRun::SWARM_OMEGA_ALGORITHM)
+    {
+		CEPuckOmegaAlgorithm* pcOmegaAlgorithm = new CEPuckOmegaAlgorithm(100.0f); //range threshold in cm //60.0
+        m_vecBehaviors.push_back(pcOmegaAlgorithm);
+    }
+	
     else if(m_sExpRun.SBehavior == ExperimentToRun::SWARM_AGGREGATION_DISPERSION)
     {
         // check to switch behavior -- (expected waiting time 1/p steps). As the check is made every 100 steps, it becomes 100/p steps
