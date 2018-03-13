@@ -266,8 +266,8 @@ void CEPuckHomSwarm::ControlStep()
         std::cout << "Waiting for the experiment to begin" << std::endl;
 #endif
 
-	    m_pcLEDs->SwitchLED((int)(m_fInternalRobotTimer) % 8, true); // Turn one of the 8 base LEDs on
-        m_pcLEDs->SwitchLED((int)(m_fInternalRobotTimer - 1) % 8, false); // Turn previous base LED off
+//	    m_pcLEDs->SwitchLED((int)(m_fInternalRobotTimer) % 8, true); // Turn one of the 8 base LEDs on
+//        m_pcLEDs->SwitchLED((int)(m_fInternalRobotTimer - 1) % 8, false); // Turn previous base LED off
 
         m_pcLEDs->FrontLED((int)m_fInternalRobotTimer % 2 == 0);
         m_pcLEDs->BodyLED((int)m_fInternalRobotTimer % 2 == 1);
@@ -345,11 +345,11 @@ void CEPuckHomSwarm::ControlStep()
     std::cout << std::endl << std::endl << "Control-step " << m_fInternalRobotTimer << " start " << std::endl;
 #endif
 
-    m_pcLEDs->SwitchLED((int)(m_fInternalRobotTimer) % 8, true); // Turn one of the 8 base LEDs on
-    m_pcLEDs->SwitchLED((int)(m_fInternalRobotTimer - 1) % 8, false); // Turn previous base LED off
+//    m_pcLEDs->SwitchLED((int)(m_fInternalRobotTimer) % 8, true); // Turn one of the 8 base LEDs on
+//    m_pcLEDs->SwitchLED((int)(m_fInternalRobotTimer - 1) % 8, false); // Turn previous base LED off
 
-    m_pcLEDs->FrontLED((int)m_fInternalRobotTimer % 2 == 0);
-    m_pcLEDs->BodyLED((int)m_fInternalRobotTimer % 2 == 1);
+    m_pcLEDs->FrontLED(false);
+    m_pcLEDs->BodyLED(false);
 
 	CBehavior::m_sSensoryData.SetSensoryData(m_pcRNG, m_fInternalRobotTimer, GetIRSensorReadings(), GetRABSensorReadings(), GetLightSensorReadings());  //no fault 
 
@@ -381,6 +381,14 @@ void CEPuckHomSwarm::ControlStep()
 			if (m_sExpRun.SBehavior == ExperimentToRun::SWARM_OMEGA_ALGORITHM) 
 			{
 				bControlTaken = (*i)->TakeControl(m_fInternalRobotTimer);   //modified specifically for omega algorithm
+				if (dynamic_cast<CEPuckOmegaAlgorithm*>(*i)->GetIlluminateStatus()) 
+				{
+					m_pcLEDs->BodyLED(true);
+				}
+				else 
+				{
+					m_pcLEDs->BodyLED(false);
+				}
 			}
 			else 
 			{

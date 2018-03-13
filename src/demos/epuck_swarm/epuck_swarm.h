@@ -183,7 +183,8 @@ private:
 
     CCI_EPuckProximitySensor::TReadings GetIRSensorReadings()
     {
-        CCI_EPuckProximitySensor::TReadings sensor_readings = m_pcProximity->GetReadings();
+        //CCI_EPuckProximitySensor::TReadings sensor_readings = m_pcProximity->GetReadings();
+		CCI_EPuckProximitySensor::TReadings sensor_readings;
 
         for (size_t i = 0; i < sensor_readings.size(); ++i)
             sensor_readings[i].Value /= 4096.0f; // normalize sensor reading to range <0,1>

@@ -20,9 +20,9 @@ CEPuckOmegaAlgorithm::CEPuckOmegaAlgorithm(Real m_fRangeAndBearing_RangeThreshol
 		shadowed_avoidance_radius(0.1),
 		seconds_per_tick(0.1),
 		illuminated_avoidance_radius(0.2),
-		avoidance_radius(0)
+		avoidance_radius(0),
+		illuminated(false)
 		{
-			printf("test\n");
 		};
 
 bool CEPuckOmegaAlgorithm::TakeControl(Real m_fInternalRobotTimer)
@@ -31,13 +31,18 @@ bool CEPuckOmegaAlgorithm::TakeControl(Real m_fInternalRobotTimer)
 	printf("\n\nstate: %d control step: %f\n", state, m_fInternalRobotTimer);
     // Determine illumination status
 
-    bool illuminated = false;
+    illuminated = false;
     int count = 0;
 
 	printf("[LIGHT]\t\t");
     for(size_t i = 0; i <  m_sSensoryData.m_LightSensorData.size(); ++i)
     {
         printf("%.2f, ", m_sSensoryData.m_LightSensorData[i].Value);
+	}
+	printf("\n");
+	
+    for(size_t i = 0; i <  m_sSensoryData.m_LightSensorData.size(); ++i)
+    {
 		if(m_sSensoryData.m_LightSensorData[i].Value > 0)
         {
             count++;
@@ -50,7 +55,6 @@ bool CEPuckOmegaAlgorithm::TakeControl(Real m_fInternalRobotTimer)
             }
         }
     }
-	printf("\n");
 
     // Set the robot's avoidance radius according to its illumination status
     // The LEDs also change based on illumination status, but only for visual debugging purposes
@@ -85,13 +89,12 @@ bool CEPuckOmegaAlgorithm::TakeControl(Real m_fInternalRobotTimer)
 
                 for(int i = 0; i < m_sSensoryData.m_RABSensorData.size(); ++i)
                 {
+					printf("[RAB]\t\t");
                     //const CCI_EPuckRangeAndBearingSensor::SPacket packet = m_sSensoryData.m_RABSensorData[i];
 					if(m_sSensoryData.m_RABSensorData[i]->Range < m_fRangeAndBearing_RangeThreshold) 
 					{
-                    	std::cout << "Printing RAB Packets start3 " << std::endl;
 						printf("RobotId:%d, Range:%.2f, Bearing:%.2f\t", m_sSensoryData.m_RABSensorData[i]->RobotId, m_sSensoryData.m_RABSensorData[i]->Range, ToDegrees(m_sSensoryData.m_RABSensorData[i]->Bearing).GetValue());
-						printf("\n");
-						std::cout << "Printing RAB Packets end3 " << std::endl;
+						printf("\n\t\t");
 						
 						Real range = m_sSensoryData.m_RABSensorData[i]->Range;
                     	CRadians bearing = m_sSensoryData.m_RABSensorData[i]->Bearing;
@@ -100,7 +103,7 @@ bool CEPuckOmegaAlgorithm::TakeControl(Real m_fInternalRobotTimer)
                     	centroid += CVector2(range, bearing);
 					}
                 }
-
+				printf("\n");
                 // Calculate the angle towards the swarm centroid
                 heading = ToDegrees(centroid.Angle());
             }
@@ -113,13 +116,13 @@ bool CEPuckOmegaAlgorithm::TakeControl(Real m_fInternalRobotTimer)
 
             for(int i = 0; i < m_sSensoryData.m_RABSensorData.size(); ++i)
             {
+				printf("[RAB] \t\t");
                 //const CCI_RangeAndBearingSensor::SPacket packet = m_sSensoryData.m_RABSensorData[i];
 				if(m_sSensoryData.m_RABSensorData[i]->Range < m_fRangeAndBearing_RangeThreshold) 
 				{
-					std::cout << "Printing RAB Packets start3 " << std::endl;
+					
 					printf("RobotId:%d, Range:%.2f, Bearing:%.2f\t", m_sSensoryData.m_RABSensorData[i]->RobotId, m_sSensoryData.m_RABSensorData[i]->Range, ToDegrees(m_sSensoryData.m_RABSensorData[i]->Bearing).GetValue());
-					printf("\n");
-					std::cout << "Printing RAB Packets end3 " << std::endl;
+					printf("\n\t\t");
 					
 					Real range = m_sSensoryData.m_RABSensorData[i]->Range / 100; // Convert centimetres to metres
 
@@ -131,6 +134,7 @@ bool CEPuckOmegaAlgorithm::TakeControl(Real m_fInternalRobotTimer)
 						centroid += CVector2(range, bearing);
 					}
 				}
+				printf("\n");
             }
 
             // Only avoid if there were robots close enough

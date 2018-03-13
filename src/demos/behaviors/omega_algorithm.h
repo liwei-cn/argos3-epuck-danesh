@@ -24,6 +24,11 @@ public:
     virtual void Action(Real &fLeftWheelSpeed, Real &fRightWheelSpeed);
 
     virtual void PrintBehaviorIdentity();
+	
+	bool GetIlluminateStatus() 
+	{
+		return illuminated;
+	}
 
 protected:
     Real           m_fRangeAndBearing_RangeThreshold;
@@ -44,6 +49,8 @@ private:
 	double right_motor_speed;
 
     double seconds_per_tick;
+	
+	bool illuminated;
 
 };
 

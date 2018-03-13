@@ -11,9 +11,9 @@
   <!-- ************************* -->
   <!-- * General configuration * -->
   <!-- ************************* -->
- <!-- length in seconds -->   <!--300 + 30 (random positioning at start) -->
+ <!-- length in seconds -->   <!--length="330": 300 + 30 (random positioning at start) -->
   <framework>
-        <experiment length="330"
+        <experiment length="3000"
                     ticks_per_second="10"
                     random_seed="555" />
   </framework>
