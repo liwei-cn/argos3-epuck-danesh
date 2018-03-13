@@ -43,7 +43,7 @@ bool CEPuckOmegaAlgorithm::TakeControl(Real m_fInternalRobotTimer)
 	
     for(size_t i = 0; i <  m_sSensoryData.m_LightSensorData.size(); ++i)
     {
-		if(m_sSensoryData.m_LightSensorData[i].Value > 0)
+		if(m_sSensoryData.m_LightSensorData[i].Value > 500)
         {
             count++;
 

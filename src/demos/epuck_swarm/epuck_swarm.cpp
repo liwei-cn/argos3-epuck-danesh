@@ -296,7 +296,7 @@ void CEPuckHomSwarm::ControlStep()
                 Send message to tracking server -- exp port
                 On receiving reply, start expt.
             */
-/*
+
             int socket_desc;
             struct sockaddr_in trackingserver;
 
@@ -332,7 +332,7 @@ void CEPuckHomSwarm::ControlStep()
             std::cout << "Reply received from tracking server for robot sync.\n" << std::endl;
 
             puts(server_reply);
-*/
+
             // Can now start experiment
 #ifdef DEBUG_EXP_MESSAGES
             std::cout << "STARTING EXPERIMENT..." << std::endl;
@@ -416,6 +416,7 @@ void CEPuckHomSwarm::ControlStep()
     //    printf("%.2f, ", reading.Value);
 
 	/*maybe because m_sSensoryData has already obstained the data from the tracking server, this read return empty data as the tracking server only send the data once??*/
+/*
     CCI_EPuckPseudoRangeAndBearingSensor::TPackets rabsensor_readings = GetRABSensorReadings();
 #ifdef DEBUG_EXP_MESSAGES
     std::cout << "Printing RAB Packets start " << std::endl;
@@ -424,6 +425,7 @@ void CEPuckHomSwarm::ControlStep()
     printf("\n");
     std::cout << "Printing RAB Packets end " << std::endl;
 #endif
+*/
 /*
 	printf("[LIGHT]\t\t");
 
