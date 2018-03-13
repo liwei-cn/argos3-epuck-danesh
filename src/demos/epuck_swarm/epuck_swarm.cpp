@@ -229,7 +229,7 @@ void CEPuckHomSwarm::Init(TConfigurationNode& t_node)
 
 
     m_pFlockingBehavior = new CFlockingBehavior(m_sRobotDetails.iterations_per_second * 1.0f); // 5.0f
-
+	
 #ifdef DEBUG_EXP_MESSAGES
     std::cout << "Init function ended " << std::endl;
 #endif
@@ -263,46 +263,17 @@ void CEPuckHomSwarm::ControlStep()
     if(b_randompositionrobot)
     {
 #ifdef DEBUG_EXP_MESSAGES
-        std::cout << "Positioning the robot to new random position by running dispersion behavior" << std::endl;
+        std::cout << "Waiting for the experiment to begin" << std::endl;
 #endif
 
-        m_vecBehaviors.clear();
-        CDisperseBehavior* pcDisperseBehavior = new CDisperseBehavior(0.02f, ToRadians(CDegrees(5.0f))); //new CDisperseBehavior(0.1f, ToRadians(CDegrees(5.0f)))
-        m_vecBehaviors.push_back(pcDisperseBehavior);
+	    m_pcLEDs->SwitchLED((int)(m_fInternalRobotTimer) % 8, true); // Turn one of the 8 base LEDs on
+        m_pcLEDs->SwitchLED((int)(m_fInternalRobotTimer - 1) % 8, false); // Turn previous base LED off
 
-        CRandomWalkBehavior* pcRandomWalkBehavior = new CRandomWalkBehavior(0.05f); //0.0017f
-        m_vecBehaviors.push_back(pcRandomWalkBehavior);
-
-        CBehavior::m_sSensoryData.SetSensoryData(m_pcRNG, m_fInternalRobotTimer, GetIRSensorReadings(), GetRABSensorReadings(), GetLightSensorReadings());  
-
-        leftSpeed_prev = leftSpeed; rightSpeed_prev = rightSpeed;
-        leftSpeed = 0.0; rightSpeed = 0.0f;
-        bool bControlTaken = false;
-        for (TBehaviorVectorIterator i = m_vecBehaviors.begin(); i != m_vecBehaviors.end(); i++)
-        {
-            if (!bControlTaken)
-            {
-                bControlTaken = (*i)->TakeControl();
-                if (bControlTaken)
-                {
-#ifdef DEBUG_EXP_MESSAGES
-                    (*i)->PrintBehaviorIdentity();
-#endif
-                    (*i)->Action(leftSpeed, rightSpeed);
-                }
-            } else
-                (*i)->Suppress();	//empty function
-        }
-        //if(!(leftSpeed == leftSpeed_prev) && (rightSpeed == rightSpeed_prev))
-        m_pcWheels->SetLinearVelocity(leftSpeed, rightSpeed); // in cm/s
-        m_fInternalRobotTimer+=1.0f;
-
-
-        if(m_fInternalRobotTimer == 9) // Random positioning for 1s
-        {
-            m_pcWheels->SetLinearVelocity(0.0f, 0.0f);
-        }
-
+        m_pcLEDs->FrontLED((int)m_fInternalRobotTimer % 2 == 0);
+        m_pcLEDs->BodyLED((int)m_fInternalRobotTimer % 2 == 1);
+		
+		m_fInternalRobotTimer+=1.0f;
+		
         if(m_fInternalRobotTimer == 10) // Random positioning for 1s
         {
             m_pcWheels->SetLinearVelocity(0.0f, 0.0f);
@@ -310,11 +281,22 @@ void CEPuckHomSwarm::ControlStep()
             b_randompositionrobot = false;
             m_fInternalRobotTimer = 0.0f;
 
+			/*this makes sure the behavior won't be instantiated in every control step*/
+			if(m_sExpRun.SBehavior == ExperimentToRun::SWARM_AGGREGATION               ||
+			   m_sExpRun.SBehavior == ExperimentToRun::SWARM_DISPERSION                ||
+			   m_sExpRun.SBehavior == ExperimentToRun::SWARM_FLOCKING                  ||
+			   m_sExpRun.SBehavior == ExperimentToRun::SWARM_HOMING                    ||
+			   m_sExpRun.SBehavior == ExperimentToRun::SWARM_HOMING_MOVING_BEACON      ||
+			   m_sExpRun.SBehavior == ExperimentToRun::SWARM_STOP                      ||
+			   m_sExpRun.SBehavior == ExperimentToRun::SWARM_AGGREGATION_DISPERSION    ||
+			   m_sExpRun.SBehavior == ExperimentToRun::SWARM_OMEGA_ALGORITHM)
+				 RunHomogeneousSwarmExperiment();
+			
             /**
                 Send message to tracking server -- exp port
                 On receiving reply, start expt.
             */
-
+/*
             int socket_desc;
             struct sockaddr_in trackingserver;
 
@@ -350,7 +332,7 @@ void CEPuckHomSwarm::ControlStep()
             std::cout << "Reply received from tracking server for robot sync.\n" << std::endl;
 
             puts(server_reply);
-
+*/
             // Can now start experiment
 #ifdef DEBUG_EXP_MESSAGES
             std::cout << "STARTING EXPERIMENT..." << std::endl;
@@ -368,18 +350,6 @@ void CEPuckHomSwarm::ControlStep()
 
     m_pcLEDs->FrontLED((int)m_fInternalRobotTimer % 2 == 0);
     m_pcLEDs->BodyLED((int)m_fInternalRobotTimer % 2 == 1);
-
-
-   if(m_sExpRun.SBehavior == ExperimentToRun::SWARM_AGGREGATION               ||
-	  m_sExpRun.SBehavior == ExperimentToRun::SWARM_DISPERSION                ||
-	  m_sExpRun.SBehavior == ExperimentToRun::SWARM_FLOCKING                  ||
-	  m_sExpRun.SBehavior == ExperimentToRun::SWARM_HOMING                    ||
-      m_sExpRun.SBehavior == ExperimentToRun::SWARM_HOMING_MOVING_BEACON      ||
-	  m_sExpRun.SBehavior == ExperimentToRun::SWARM_STOP                      ||
-	  m_sExpRun.SBehavior == ExperimentToRun::SWARM_AGGREGATION_DISPERSION    ||
-	  m_sExpRun.SBehavior == ExperimentToRun::SWARM_OMEGA_ALGORITHM)
-   		RunHomogeneousSwarmExperiment();
-
 
 	CBehavior::m_sSensoryData.SetSensoryData(m_pcRNG, m_fInternalRobotTimer, GetIRSensorReadings(), GetRABSensorReadings(), GetLightSensorReadings());  //no fault 
 
@@ -428,34 +398,11 @@ void CEPuckHomSwarm::ControlStep()
             (*i)->Suppress();
     }
 
-
-    if(GetIRSensorReadings()[0].Value > 0.4f ||
-       GetIRSensorReadings()[1].Value > 0.4f ||
-       GetIRSensorReadings()[2].Value > 0.4f ||
-       GetIRSensorReadings()[3].Value > 0.4f ||
-       GetIRSensorReadings()[4].Value > 0.4f ||
-       GetIRSensorReadings()[5].Value > 0.4f ||
-       GetIRSensorReadings()[6].Value > 0.4f ||
-       GetIRSensorReadings()[7].Value > 0.4f)
-        u_num_consequtivecollisions++;
-    else
-        u_num_consequtivecollisions = 0u;
-
+	printf("[IR]\t\t");
     for(CCI_EPuckProximitySensor::SReading reading : GetIRSensorReadings())
         printf("%.2f, ", reading.Value);
+	printf("\n");
 
-
-    // if the robot is colliding with the wall other robot for more than 5s, we reduce its speed by half
-    /* this will be harder to detect when we add noise on the IR sensors. Be wary of that. So using the noiseless variant of the IR sensors for this detection*/
-    if((Real)u_num_consequtivecollisions > (m_sRobotDetails.iterations_per_second * 1.0f))
-    {
-#ifdef DEBUG_EXP_MESSAGES
-        std::cout << std::endl << "[Pseudo Motor Encoder Implementation] Prolonged collisions detected. Reducing motor speeds by 50%" << std::endl;
-#endif
-
-        leftSpeed  = leftSpeed/2.0f;
-        rightSpeed = rightSpeed/2.0f;
-    }
 
     //for(CCI_EPuckProximitySensor::SReading reading : GetIRSensorReadings(false, m_sExpRun.FBehavior))
     //    printf("%.2f, ", reading.Value);
@@ -469,7 +416,7 @@ void CEPuckHomSwarm::ControlStep()
     printf("\n");
     std::cout << "Printing RAB Packets end " << std::endl;
 #endif
-
+/*
 	printf("[LIGHT]\t\t");
 
     const CCI_EPuckLightSensor::TReadings& light_sensor_readings = m_pcLight->GetReadings();
@@ -478,15 +425,15 @@ void CEPuckHomSwarm::ControlStep()
         printf("%.2f, ", reading.Value);
 
     printf("\n");
-	
+*/	
     //if(!(leftSpeed == leftSpeed_prev) && (rightSpeed == rightSpeed_prev))
-    m_pcWheels->SetLinearVelocity(leftSpeed, rightSpeed); // in cm/s  //set the speed of the robot by writing into the actuactor
+    m_pcWheels->SetLinearVelocity(leftSpeed, rightSpeed); // in cm/s  //set the speed of the robot by writing into the actuactor SetLinearVelocity(leftSpeed, rightSpeed)
 
 #ifdef DEBUG_EXP_MESSAGES
     std::cout << "LS:  " << leftSpeed << " RS:  " << rightSpeed << std::endl;
 #endif
 
-    m_uRobotId = RobotIdStrToInt();
+    //m_uRobotId = RobotIdStrToInt();
 
     /************************************************************************************/
     // Adding noise for the motor encoders

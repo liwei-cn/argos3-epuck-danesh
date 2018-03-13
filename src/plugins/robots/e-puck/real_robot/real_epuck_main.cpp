@@ -119,7 +119,7 @@ int main(int argc, char** argv)
         while (!pcRealEPuck->IsExperimentFinished() && !pcRealEPuck->bGoHome())
         {
 #ifdef DEBUG_EPUCK_MESSAGES
-            std::cout << "In EPuck Main Loop About to receive Sensor Data " << std::endl;
+            //std::cout << "In EPuck Main Loop About to receive Sensor Data " << std::endl;
 #endif
             /* Receive raw data from robot sensors */
             pcRealEPuck->ReceiveSensorData();

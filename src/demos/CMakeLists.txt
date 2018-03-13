@@ -25,5 +25,8 @@ include_directories(${CMAKE_SOURCE_DIR}/demos/behaviors
 
 target_link_libraries(epuck_swarm argos3plugin_${ARGOS_BUILD_FOR}_epuck) 
 
+message("Cmake Source Dir: " ${CMAKE_SOURCE_DIR})
+message("ARGoS Build For: " ${ARGOS_BUILD_FOR})
+
 
 

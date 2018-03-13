@@ -11,7 +11,7 @@
 
 
 
-#define DEBUG_EPUCK_MESSAGES
+//#define DEBUG_EPUCK_MESSAGES
 //#define DEBUG_RAB_MESSAGES
 
 #define DEBUG_EXP_MESSAGES // epuck_hom_swarm experiment

@@ -14,13 +14,16 @@ using namespace std;
 CEPuckOmegaAlgorithm::CEPuckOmegaAlgorithm(Real m_fRangeAndBearing_RangeThreshold):
 		m_fRangeAndBearing_RangeThreshold(m_fRangeAndBearing_RangeThreshold),
         state(forward),
-        aggregation_timer(5),
+        aggregation_timer(0),
         distance_turned(0),
 		omega(25),
 		shadowed_avoidance_radius(0.1),
-		seconds_per_tick(0),
+		seconds_per_tick(0.1),
 		illuminated_avoidance_radius(0.2),
-		avoidance_radius(0){};
+		avoidance_radius(0)
+		{
+			printf("test\n");
+		};
 
 bool CEPuckOmegaAlgorithm::TakeControl(Real m_fInternalRobotTimer)
 {
@@ -31,9 +34,11 @@ bool CEPuckOmegaAlgorithm::TakeControl(Real m_fInternalRobotTimer)
     bool illuminated = false;
     int count = 0;
 
+	printf("[LIGHT]\t\t");
     for(size_t i = 0; i <  m_sSensoryData.m_LightSensorData.size(); ++i)
     {
-        if(m_sSensoryData.m_LightSensorData[i].Value > 0)
+        printf("%.2f, ", m_sSensoryData.m_LightSensorData[i].Value);
+		if(m_sSensoryData.m_LightSensorData[i].Value > 0)
         {
             count++;
 
@@ -45,6 +50,7 @@ bool CEPuckOmegaAlgorithm::TakeControl(Real m_fInternalRobotTimer)
             }
         }
     }
+	printf("\n");
 
     // Set the robot's avoidance radius according to its illumination status
     // The LEDs also change based on illumination status, but only for visual debugging purposes
@@ -70,6 +76,7 @@ bool CEPuckOmegaAlgorithm::TakeControl(Real m_fInternalRobotTimer)
         // Perform coherence if the aggregation timer has expired
         if(m_fInternalRobotTimer - aggregation_timer > omega)
         {
+			printf("RAB size: %d\n", m_sSensoryData.m_RABSensorData.size());
         	if(m_sSensoryData.m_RABSensorData.size() == 0)
                 heading.SetValue(180);  //the robot takes 2.6s (26 time steps) to turn 180 degrees
             else
@@ -140,7 +147,7 @@ bool CEPuckOmegaAlgorithm::TakeControl(Real m_fInternalRobotTimer)
     }
     else if(state == avoidance || state == coherence)
     {
-//    	printf("state: %d control step: %d\n", state, m_fInternalRobotTimer);
+    	//printf("state: %d control step: %f\n", state, m_fInternalRobotTimer);
     	// Either turn left or right, depending on the desired heading
         if(heading.GetValue() <= 0)
         {
@@ -166,8 +173,6 @@ bool CEPuckOmegaAlgorithm::TakeControl(Real m_fInternalRobotTimer)
     }
 
 	return true;
-    // Set the robot's wheel speeds
-    //wheels->SetLinearVelocity(left_motor_speed, right_motor_speed);
 
 }
 
@@ -186,7 +191,7 @@ void CEPuckOmegaAlgorithm::Action(Real &fLeftWheelSpeed, Real &fRightWheelSpeed)
 
 void CEPuckOmegaAlgorithm::PrintBehaviorIdentity()
 {
-    std::cout << "Omega Algorithm taking over";
+    std::cout << "Omega Algorithm taking over" << std::endl;
 }
 
 

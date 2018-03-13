@@ -225,7 +225,7 @@ void CRealEPuck::ReceiveSensorData() {
             m_vecI2CSensors[i]->ReceiveData();
         }
 #ifdef DEBUG_EPUCK_MESSAGES
-        std::cout << "Received sensor data from the I2C bus " << std::endl;
+        //std::cout << "Received sensor data from the I2C bus " << std::endl;
         /* Receive data from the serial bus */
         std::cout << "Receive sensor data from the serial bus " << std::endl;
 #endif
