@@ -211,7 +211,9 @@ void CTestController::ControlStep()
 
 
     double velocity = CCI_EPuckWheelsActuator::MAX_VELOCITY_CM_SEC / 3.0f; // CCI_EPuckWheelsActuator::MAX_VELOCITY_CM_SEC = 30cm/s
-
+	
+	wheels_actuator->SetLinearVelocity(0.0f, 0.0f);
+/*
     //Stage 1 -- robot moves straight for 50cm
     if(control_step < 50)
     {
@@ -244,6 +246,7 @@ void CTestController::ControlStep()
         std::cout << "Test complete" << std::endl;
         wheels_actuator->SetLinearVelocity(0.0f, 0.0f);
     }
+	*/
 }
 
 REGISTER_CONTROLLER(CTestController, "test_controller");

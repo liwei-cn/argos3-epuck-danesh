@@ -231,7 +231,7 @@ void CEPuckHomSwarm::Init(TConfigurationNode& t_node)
     m_pFlockingBehavior = new CFlockingBehavior(m_sRobotDetails.iterations_per_second * 1.0f); // 5.0f
 	
 #ifdef DEBUG_EXP_MESSAGES
-    std::cout << "Init function ended " << std::endl;
+    std::cout << "Init function ended! " << std::endl;
 #endif
 }
 
